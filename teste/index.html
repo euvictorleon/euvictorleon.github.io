@@ -1,1143 +1,460 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<style>
+  :root {
+    --bg: #eef3f9;
+    --header: #0f172a;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #dbe3ef;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --success: #16a34a;
+    --warning: #f59e0b;
+    --dark: #334155;
+    --shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    --radius: 16px;
+  }
 
-  <title>Prospecção de Leads</title>
+  * {
+    box-sizing: border-box;
+  }
 
-  <style>
-    :root {
-      --bg: #0f172a;
-      --panel: #111827;
-      --panel2: #1f2937;
-      --card: #ffffff;
-      --text: #0f172a;
-      --muted: #64748b;
-      --primary: #2563eb;
-      --primary-dark: #1d4ed8;
-      --success: #16a34a;
-      --warning: #f59e0b;
-      --danger: #dc2626;
-      --border: #e5e7eb;
-      --disabled: #94a3b8;
-    }
+  body {
+    margin: 0;
+    font-family: Inter, Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
 
-    * {
-      box-sizing: border-box;
-    }
+  header {
+    background: linear-gradient(135deg, #0f172a, #111827);
+    color: #ffffff;
+    padding: 28px 32px 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
 
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: #f1f5f9;
-      color: var(--text);
-    }
+  header h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 1.1;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
 
-    header {
-      background: var(--bg);
-      color: white;
-      padding: 22px;
-    }
+  header p {
+    margin: 8px 0 0;
+    color: #cbd5e1;
+    font-size: 15px;
+  }
 
-    header h1 {
-      margin: 0;
-      font-size: 24px;
-    }
+  main {
+    width: min(100% - 48px, 1400px);
+    margin: 0 auto;
+    padding: 24px 0 56px;
+  }
 
-    header p {
-      margin: 6px 0 0;
-      color: #cbd5e1;
-      font-size: 14px;
-    }
+  .search-box {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(219, 227, 239, 0.8);
+    margin-bottom: 18px;
+  }
 
-    main {
-      padding: 20px;
-      max-width: 1280px;
-      margin: 0 auto;
-    }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 150px;
+    gap: 14px;
+    align-items: end;
+  }
 
-    .search-box {
-      background: white;
-      border-radius: 14px;
-      padding: 18px;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-      margin-bottom: 18px;
-    }
+  label {
+    display: block;
+    font-size: 13px;
+    color: #475569;
+    margin-bottom: 7px;
+    font-weight: 800;
+  }
 
+  input {
+    width: 100%;
+    height: 46px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0 14px;
+    font-size: 14px;
+    outline: none;
+    color: var(--text);
+    background: #ffffff;
+    transition: 0.15s ease;
+  }
+
+  input::placeholder {
+    color: #94a3b8;
+  }
+
+  input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+  }
+
+  button {
+    border: none;
+    border-radius: 12px;
+    padding: 12px 16px;
+    min-height: 44px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.18s ease;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  button:hover:not(:disabled) {
+    transform: translateY(-1px);
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+    transform: none;
+  }
+
+  .btn-primary {
+    background: var(--primary);
+    color: #ffffff;
+  }
+
+  .btn-primary:hover:not(:disabled) {
+    background: var(--primary-hover);
+  }
+
+  .btn-success {
+    background: var(--success);
+    color: #ffffff;
+  }
+
+  .btn-warning {
+    background: var(--warning);
+    color: #ffffff;
+  }
+
+  .btn-secondary {
+    background: var(--dark);
+    color: #ffffff;
+  }
+
+  .btn-light {
+    background: #e2e8f0;
+    color: #334155;
+  }
+
+  .status-message {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+    font-weight: 800;
+    display: none;
+  }
+
+  .status-message.show {
+    display: block;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .stat {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 18px 18px 16px;
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(219, 227, 239, 0.8);
+  }
+
+  .stat strong {
+    display: block;
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: 9px;
+    font-weight: 900;
+    letter-spacing: -0.04em;
+  }
+
+  .stat span {
+    color: #475569;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 10px;
+    margin: 6px 0 14px;
+    flex-wrap: wrap;
+  }
+
+  .tab {
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid var(--border);
+    min-width: 118px;
+  }
+
+  .tab.active {
+    background: #0f172a;
+    color: #ffffff;
+    border-color: #0f172a;
+  }
+
+  .panel {
+    display: none;
+  }
+
+  .panel.active {
+    display: block;
+  }
+
+  .actions-bar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(219, 227, 239, 0.9);
+    padding: 12px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    backdrop-filter: blur(6px);
+  }
+
+  .lead-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  .lead-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 18px;
+    border: 1px solid rgba(219, 227, 239, 0.95);
+    box-shadow: var(--shadow);
+    position: relative;
+    min-height: 250px;
+    transition: 0.18s ease;
+  }
+
+  .lead-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.11);
+  }
+
+  .lead-card.selected {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15), var(--shadow);
+  }
+
+  .lead-card.used {
+    opacity: 0.48;
+    filter: grayscale(1);
+    background: #f8fafc;
+  }
+
+  .lead-card.used:hover {
+    transform: none;
+  }
+
+  .lead-card h3 {
+    margin: 10px 34px 10px 0;
+    font-size: 18px;
+    line-height: 1.25;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+  }
+
+  .lead-card p {
+    margin: 8px 0;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #334155;
+    word-break: break-word;
+  }
+
+  .lead-card a {
+    color: var(--primary);
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .lead-card a:hover {
+    text-decoration: underline;
+  }
+
+  .lead-card .muted {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .check-area {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+  }
+
+  .check-area input {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 900;
+    color: #ffffff;
+    margin-bottom: 2px;
+  }
+
+  .badge-new {
+    background: var(--primary);
+  }
+
+  .badge-saved {
+    background: var(--success);
+  }
+
+  .badge-crm {
+    background: var(--warning);
+  }
+
+  .lead-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #edf2f7;
+  }
+
+  .lead-actions button {
+    padding: 10px 12px;
+    min-height: 38px;
+    font-size: 13px;
+  }
+
+  .empty {
+    grid-column: 1 / -1;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 52px 24px;
+    min-height: 180px;
+    text-align: center;
+    color: #475569;
+    border: 1px dashed #b8c4d6;
+    box-shadow: var(--shadow);
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 24px;
+  }
+
+  .pagination span {
+    font-weight: 800;
+    color: #334155;
+  }
+
+  @media (max-width: 1180px) {
     .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto;
-      gap: 12px;
-      align-items: end;
-    }
-
-    label {
-      display: block;
-      font-size: 13px;
-      color: var(--muted);
-      margin-bottom: 6px;
-      font-weight: 700;
-    }
-
-    input {
-      width: 100%;
-      height: 42px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0 12px;
-      font-size: 14px;
-      outline: none;
-    }
-
-    input:focus {
-      border-color: var(--primary);
-    }
-
-    button {
-      border: none;
-      border-radius: 10px;
-      padding: 11px 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 14px;
-    }
-
-    button:disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
-    }
-
-    .btn-primary {
-      background: var(--primary);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: var(--primary-dark);
-    }
-
-    .btn-success {
-      background: var(--success);
-      color: white;
-    }
-
-    .btn-warning {
-      background: var(--warning);
-      color: white;
-    }
-
-    .btn-secondary {
-      background: #334155;
-      color: white;
-    }
-
-    .btn-light {
-      background: #e2e8f0;
-      color: #0f172a;
-    }
-
-    .actions-bar {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin: 14px 0;
+      grid-template-columns: 1fr 1fr;
     }
 
     .stats {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-      margin-bottom: 18px;
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 820px) {
+    main {
+      width: min(100% - 28px, 100%);
+      padding-top: 16px;
     }
 
-    .stat {
-      background: white;
-      border-radius: 14px;
-      padding: 14px;
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    header {
+      padding: 24px 18px;
     }
 
-    .stat strong {
-      display: block;
-      font-size: 22px;
-      margin-bottom: 4px;
+    header h1 {
+      font-size: 24px;
     }
 
-    .stat span {
-      color: var(--muted);
-      font-size: 13px;
+    .grid {
+      grid-template-columns: 1fr;
     }
 
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 14px;
-      flex-wrap: wrap;
-    }
-
-    .tab {
-      background: white;
-      color: #0f172a;
-      border: 1px solid var(--border);
-    }
-
-    .tab.active {
-      background: var(--bg);
-      color: white;
-      border-color: var(--bg);
-    }
-
-    .panel {
-      display: none;
-    }
-
-    .panel.active {
-      display: block;
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
     }
 
     .lead-list {
+      grid-template-columns: 1fr;
+    }
+
+    .actions-bar {
+      flex-direction: column;
+    }
+
+    button {
+      width: 100%;
+    }
+
+    .tabs {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
     }
 
-    .lead-card {
-      background: white;
-      border-radius: 14px;
-      padding: 16px;
-      border: 1px solid var(--border);
-      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-      position: relative;
-    }
-
-    .lead-card.selected {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
-    }
-
-    .lead-card.used {
-      opacity: 0.45;
-      filter: grayscale(1);
-      background: #f8fafc;
-    }
-
-    .lead-card h3 {
-      margin: 0 0 8px;
-      font-size: 17px;
-      padding-right: 28px;
-    }
-
-    .lead-card p {
-      margin: 6px 0;
-      font-size: 14px;
-      color: #334155;
-      word-break: break-word;
-    }
-
-    .lead-card .muted {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .lead-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-
-    .lead-actions button {
-      padding: 9px 10px;
-      font-size: 13px;
-    }
-
-    .check-area {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-    }
-
-    .check-area input {
-      width: 18px;
-      height: 18px;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 5px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 700;
-      color: white;
-      margin-bottom: 8px;
-    }
-
-    .badge-new {
-      background: var(--primary);
-    }
-
-    .badge-saved {
-      background: var(--success);
-    }
-
-    .badge-crm {
-      background: var(--warning);
-    }
-
-    .empty {
-      background: white;
-      border-radius: 14px;
-      padding: 30px;
-      text-align: center;
-      color: var(--muted);
-      border: 1px dashed #cbd5e1;
+    .tab {
+      min-width: 0;
     }
 
     .pagination {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .stats {
+      grid-template-columns: 1fr;
     }
 
-    .status-message {
-      margin-top: 12px;
-      padding: 12px;
-      border-radius: 10px;
-      background: #eff6ff;
-      color: #1e40af;
-      font-weight: 700;
-      display: none;
+    .tabs {
+      grid-template-columns: 1fr;
     }
 
-    .status-message.show {
-      display: block;
+    .search-box,
+    .stat,
+    .lead-card,
+    .empty {
+      border-radius: 14px;
     }
-
-    @media (max-width: 1000px) {
-      .grid {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .stats {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .lead-list {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 680px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      .lead-list {
-        grid-template-columns: 1fr;
-      }
-
-      .actions-bar {
-        flex-direction: column;
-      }
-
-      button {
-        width: 100%;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <header>
-    <h1>Prospecção de Leads</h1>
-    <p>Leads salvos ou enviados para CRM não voltam mais para a tela principal.</p>
-  </header>
-
-  <main>
-    <section class="search-box">
-      <div class="grid">
-        <div>
-          <label for="nichoInput">Nicho</label>
-          <input id="nichoInput" placeholder="Ex: dentista, restaurante, academia" />
-        </div>
-
-        <div>
-          <label for="cidadeInput">Cidade</label>
-          <input id="cidadeInput" placeholder="Ex: Curitiba" />
-        </div>
-
-        <div>
-          <label for="bairroInput">Bairro opcional</label>
-          <input id="bairroInput" placeholder="Ex: Centro" />
-        </div>
-
-        <button class="btn-primary" id="buscarBtn">
-          Buscar Leads
-        </button>
-      </div>
-
-      <div class="status-message" id="statusMessage"></div>
-    </section>
-
-    <section class="stats">
-      <div class="stat">
-        <strong id="statNovos">0</strong>
-        <span>Novos na tela</span>
-      </div>
-
-      <div class="stat">
-        <strong id="statSalvos">0</strong>
-        <span>Salvos</span>
-      </div>
-
-      <div class="stat">
-        <strong id="statCrm">0</strong>
-        <span>No CRM</span>
-      </div>
-
-      <div class="stat">
-        <strong id="statIgnorados">0</strong>
-        <span>Ignorados/repetidos</span>
-      </div>
-
-      <div class="stat">
-        <strong id="statConsultas">0</strong>
-        <span>Consultas feitas</span>
-      </div>
-    </section>
-
-    <div class="tabs">
-      <button class="tab active" data-tab="principal">Tela Principal</button>
-      <button class="tab" data-tab="salvos">Salvos</button>
-      <button class="tab" data-tab="crm">CRM</button>
-    </div>
-
-    <section id="principal" class="panel active">
-      <div class="actions-bar">
-        <button class="btn-success" id="salvarSelecionadosBtn">
-          Salvar Selecionados
-        </button>
-
-        <button class="btn-warning" id="crmSelecionadosBtn">
-          Enviar Selecionados para CRM
-        </button>
-
-        <button class="btn-secondary" id="carregarMaisBtn">
-          Buscar Mais Novos
-        </button>
-      </div>
-
-      <div id="leadList" class="lead-list"></div>
-
-      <div class="pagination">
-        <button class="btn-light" id="prevPageBtn">Anterior</button>
-        <span id="pageInfo">Página 1 de 1</span>
-        <button class="btn-light" id="nextPageBtn">Próxima</button>
-      </div>
-    </section>
-
-    <section id="salvos" class="panel">
-      <div id="savedList" class="lead-list"></div>
-    </section>
-
-    <section id="crm" class="panel">
-      <div id="crmList" class="lead-list"></div>
-    </section>
-  </main>
-
-  <script>
-    const STORAGE_KEYS = {
-      used: "leads_used_place_ids_v1",
-      saved: "leads_saved_v1",
-      crm: "leads_crm_v1"
-    };
-
-    let currentLeads = [];
-    let savedLeads = carregarArray(STORAGE_KEYS.saved);
-    let crmLeads = carregarArray(STORAGE_KEYS.crm);
-    let usedPlaceIds = new Set(carregarArray(STORAGE_KEYS.used));
-    let selectedPlaceIds = new Set();
-
-    let currentPage = 1;
-    const leadsPerPage = 20;
-
-    let searchQueue = [];
-    let searchQueueIndex = 0;
-
-    const stats = {
-      ignorados: 0,
-      consultas: 0
-    };
-
-    const bairrosPorCidade = {
-      curitiba: [
-        "Centro",
-        "Batel",
-        "Água Verde",
-        "Rebouças",
-        "Bigorrilho",
-        "Mercês",
-        "Cristo Rei",
-        "Alto da XV",
-        "Cabral",
-        "Juvevê",
-        "Portão",
-        "Boqueirão",
-        "Santa Felicidade",
-        "Hauer",
-        "Bacacheri",
-        "Campo Comprido",
-        "Cajuru",
-        "Uberaba",
-        "Sítio Cercado",
-        "Boa Vista",
-        "Pinheirinho",
-        "Capão Raso",
-        "Tarumã",
-        "Vila Izabel",
-        "Seminário"
-      ],
-      maringa: [
-        "Centro",
-        "Zona 7",
-        "Zona 2",
-        "Maringá Velho",
-        "Vila Operária",
-        "Jardim Alvorada",
-        "Jardim Canadá",
-        "Parque das Grevíleas",
-        "Jardim América",
-        "Zona 5",
-        "Zona 4",
-        "Zona 8",
-        "Jardim Imperial",
-        "Cidade Alta"
-      ]
-    };
-
-    const microRegioes = {
-      "curitiba|centro": [
-        "Rua XV de Novembro, Centro, Curitiba",
-        "Praça Tiradentes, Centro, Curitiba",
-        "Largo da Ordem, Centro, Curitiba",
-        "Rua Marechal Deodoro, Centro, Curitiba",
-        "Rua Barão do Rio Branco, Centro, Curitiba",
-        "Shopping Estação, Centro, Curitiba",
-        "Passeio Público, Centro, Curitiba",
-        "Praça Osório, Centro, Curitiba",
-        "Universidade Federal do Paraná, Centro, Curitiba",
-        "Rua Riachuelo, Centro, Curitiba"
-      ]
-    };
-
-    const nichoInput = document.getElementById("nichoInput");
-    const cidadeInput = document.getElementById("cidadeInput");
-    const bairroInput = document.getElementById("bairroInput");
-
-    const buscarBtn = document.getElementById("buscarBtn");
-    const carregarMaisBtn = document.getElementById("carregarMaisBtn");
-    const salvarSelecionadosBtn = document.getElementById("salvarSelecionadosBtn");
-    const crmSelecionadosBtn = document.getElementById("crmSelecionadosBtn");
-
-    const leadList = document.getElementById("leadList");
-    const savedList = document.getElementById("savedList");
-    const crmList = document.getElementById("crmList");
-
-    const statNovos = document.getElementById("statNovos");
-    const statSalvos = document.getElementById("statSalvos");
-    const statCrm = document.getElementById("statCrm");
-    const statIgnorados = document.getElementById("statIgnorados");
-    const statConsultas = document.getElementById("statConsultas");
-
-    const statusMessage = document.getElementById("statusMessage");
-
-    const prevPageBtn = document.getElementById("prevPageBtn");
-    const nextPageBtn = document.getElementById("nextPageBtn");
-    const pageInfo = document.getElementById("pageInfo");
-
-    function carregarArray(key) {
-      try {
-        return JSON.parse(localStorage.getItem(key) || "[]");
-      } catch {
-        return [];
-      }
-    }
-
-    function salvarArray(key, value) {
-      localStorage.setItem(key, JSON.stringify(value));
-    }
-
-    function persistirTudo() {
-      salvarArray(STORAGE_KEYS.used, Array.from(usedPlaceIds));
-      salvarArray(STORAGE_KEYS.saved, savedLeads);
-      salvarArray(STORAGE_KEYS.crm, crmLeads);
-    }
-
-    function normalizarTexto(texto) {
-      return String(texto || "")
-        .trim()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-    }
-
-    function getCidadeKey(cidade) {
-      return normalizarTexto(cidade);
-    }
-
-    function getBairroKey(bairro) {
-      return normalizarTexto(bairro);
-    }
-
-    function mostrarMensagem(texto) {
-      statusMessage.textContent = texto;
-      statusMessage.classList.add("show");
-    }
-
-    function limparMensagem() {
-      statusMessage.textContent = "";
-      statusMessage.classList.remove("show");
-    }
-
-    function getLeadId(lead) {
-      return lead.place_id;
-    }
-
-    function leadJaUsado(lead) {
-      return usedPlaceIds.has(getLeadId(lead));
-    }
-
-    function marcarComoUsado(lead) {
-      const id = getLeadId(lead);
-
-      if (!id) return;
-
-      usedPlaceIds.add(id);
-      salvarArray(STORAGE_KEYS.used, Array.from(usedPlaceIds));
-    }
-
-    function existeNaLista(lista, placeId) {
-      return lista.some(item => getLeadId(item) === placeId);
-    }
-
-    function removerDaTelaPrincipal(placeId) {
-      currentLeads = currentLeads.filter(lead => getLeadId(lead) !== placeId);
-      selectedPlaceIds.delete(placeId);
-
-      const totalPages = getTotalPages();
-
-      if (currentPage > totalPages) {
-        currentPage = Math.max(1, totalPages);
-      }
-    }
-
-    function normalizarLeadGoogle(lead) {
-      return {
-        place_id: lead.place_id,
-        nome: lead.nome || "Sem nome",
-        endereco: lead.endereco || "",
-        telefone: lead.telefone || "",
-        site: lead.site || "",
-        rating: lead.rating || null,
-        avaliacoes: lead.avaliacoes || 0,
-        googleUrl: lead.googleUrl || "",
-        status: "novo"
-      };
-    }
-
-    function montarFilaConsultas(nicho, cidade, bairro) {
-      const cidadeKey = getCidadeKey(cidade);
-      const bairroKey = getBairroKey(bairro);
-
-      const fila = [];
-
-      if (bairro) {
-        fila.push(`${nicho} em ${bairro}, ${cidade}`);
-
-        const chaveMicro = `${cidadeKey}|${bairroKey}`;
-
-        if (microRegioes[chaveMicro]) {
-          for (const local of microRegioes[chaveMicro]) {
-            fila.push(`${nicho} perto de ${local}`);
-          }
-        }
-
-        fila.push(`${nicho} próximo ao bairro ${bairro}, ${cidade}`);
-        fila.push(`${nicho} perto de ${bairro}, ${cidade}`);
-
-        return removerStringsDuplicadas(fila);
-      }
-
-      fila.push(`${nicho} em ${cidade}`);
-
-      const bairros = bairrosPorCidade[cidadeKey] || [
-        "Centro",
-        "Zona Norte",
-        "Zona Sul",
-        "Zona Leste",
-        "Zona Oeste"
-      ];
-
-      for (const item of bairros) {
-        fila.push(`${nicho} em ${item}, ${cidade}`);
-      }
-
-      return removerStringsDuplicadas(fila);
-    }
-
-    function removerStringsDuplicadas(lista) {
-      return Array.from(new Set(lista.map(item => item.trim()).filter(Boolean)));
-    }
-
-    async function buscarNoBackend(query) {
-      const url = `/api/places?query=${encodeURIComponent(query)}`;
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || data.error || "Erro ao buscar leads");
-      }
-
-      const data = await response.json();
-
-      return data.leads || [];
-    }
-
-    async function iniciarNovaBusca() {
-      const nicho = nichoInput.value.trim();
-      const cidade = cidadeInput.value.trim();
-      const bairro = bairroInput.value.trim();
-
-      if (!nicho || !cidade) {
-        mostrarMensagem("Preencha pelo menos nicho e cidade.");
-        return;
-      }
-
-      limparMensagem();
-
-      currentLeads = [];
-      selectedPlaceIds.clear();
-      currentPage = 1;
-
-      stats.ignorados = 0;
-      stats.consultas = 0;
-
-      searchQueue = montarFilaConsultas(nicho, cidade, bairro);
-      searchQueueIndex = 0;
-
-      renderizarTudo();
-
-      await carregarMaisNovos(true);
-    }
-
-    async function carregarMaisNovos(novaBusca = false) {
-      if (searchQueue.length === 0) {
-        mostrarMensagem("Faça uma busca primeiro.");
-        return;
-      }
-
-      if (searchQueueIndex >= searchQueue.length) {
-        mostrarMensagem("Todas as variações de busca já foram consultadas.");
-        return;
-      }
-
-      buscarBtn.disabled = true;
-      carregarMaisBtn.disabled = true;
-
-      let adicionadosNestaRodada = 0;
-      let consultasNestaRodada = 0;
-
-      const minimoDesejado = 20;
-      const maxConsultasPorClique = 4;
-
-      try {
-        while (
-          searchQueueIndex < searchQueue.length &&
-          adicionadosNestaRodada < minimoDesejado &&
-          consultasNestaRodada < maxConsultasPorClique
-        ) {
-          const query = searchQueue[searchQueueIndex];
-          searchQueueIndex += 1;
-          consultasNestaRodada += 1;
-          stats.consultas += 1;
-
-          mostrarMensagem(`Buscando: ${query}`);
-
-          const leadsGoogle = await buscarNoBackend(query);
-          const normalizados = leadsGoogle
-            .map(normalizarLeadGoogle)
-            .filter(lead => lead.place_id);
-
-          const idsJaNaTela = new Set(currentLeads.map(lead => getLeadId(lead)));
-
-          const novos = [];
-
-          for (const lead of normalizados) {
-            const id = getLeadId(lead);
-
-            if (usedPlaceIds.has(id) || idsJaNaTela.has(id)) {
-              stats.ignorados += 1;
-              continue;
-            }
-
-            novos.push(lead);
-            idsJaNaTela.add(id);
-          }
-
-          currentLeads.push(...novos);
-          adicionadosNestaRodada += novos.length;
-        }
-
-        if (adicionadosNestaRodada > 0) {
-          mostrarMensagem(`${adicionadosNestaRodada} leads novos adicionados na tela principal.`);
-        } else if (searchQueueIndex >= searchQueue.length) {
-          mostrarMensagem("Nenhum lead novo encontrado. Todos os retornados já foram salvos, enviados ao CRM ou eram duplicados.");
-        } else {
-          mostrarMensagem("Essa rodada só trouxe repetidos. Clique em buscar mais novos para continuar.");
-        }
-      } catch (error) {
-        mostrarMensagem(`Erro: ${error.message}`);
-      } finally {
-        buscarBtn.disabled = false;
-        carregarMaisBtn.disabled = false;
-        renderizarTudo();
-      }
-    }
-
-    function salvarLead(placeId) {
-      const lead = currentLeads.find(item => getLeadId(item) === placeId);
-
-      if (!lead) return;
-
-      const leadSalvo = {
-        ...lead,
-        status: "salvo",
-        salvoEm: new Date().toISOString()
-      };
-
-      marcarComoUsado(leadSalvo);
-
-      if (!existeNaLista(savedLeads, placeId)) {
-        savedLeads.unshift(leadSalvo);
-      }
-
-      removerDaTelaPrincipal(placeId);
-      persistirTudo();
-      renderizarTudo();
-
-      mostrarMensagem("Lead salvo. Ele não aparecerá novamente na tela principal.");
-    }
-
-    function enviarLeadParaCRM(placeId) {
-      const lead = currentLeads.find(item => getLeadId(item) === placeId);
-
-      if (!lead) return;
-
-      const leadCrm = {
-        ...lead,
-        status: "crm",
-        enviadoCrmEm: new Date().toISOString()
-      };
-
-      marcarComoUsado(leadCrm);
-
-      if (!existeNaLista(crmLeads, placeId)) {
-        crmLeads.unshift(leadCrm);
-      }
-
-      removerDaTelaPrincipal(placeId);
-      persistirTudo();
-      renderizarTudo();
-
-      mostrarMensagem("Lead enviado para CRM. Ele não aparecerá novamente na tela principal.");
-    }
-
-    function salvarSelecionados() {
-      const ids = Array.from(selectedPlaceIds);
-
-      if (ids.length === 0) {
-        mostrarMensagem("Selecione pelo menos um lead.");
-        return;
-      }
-
-      for (const id of ids) {
-        salvarLead(id);
-      }
-
-      mostrarMensagem(`${ids.length} lead(s) salvo(s). Eles saíram da tela principal.`);
-    }
-
-    function enviarSelecionadosParaCRM() {
-      const ids = Array.from(selectedPlaceIds);
-
-      if (ids.length === 0) {
-        mostrarMensagem("Selecione pelo menos um lead.");
-        return;
-      }
-
-      for (const id of ids) {
-        enviarLeadParaCRM(id);
-      }
-
-      mostrarMensagem(`${ids.length} lead(s) enviado(s) para CRM. Eles saíram da tela principal.`);
-    }
-
-    function toggleSelecionado(placeId) {
-      if (selectedPlaceIds.has(placeId)) {
-        selectedPlaceIds.delete(placeId);
-      } else {
-        selectedPlaceIds.add(placeId);
-      }
-
-      renderizarPrincipal();
-    }
-
-    function getTotalPages() {
-      return Math.max(1, Math.ceil(currentLeads.length / leadsPerPage));
-    }
-
-    function getLeadsPaginaAtual() {
-      const start = (currentPage - 1) * leadsPerPage;
-      const end = start + leadsPerPage;
-
-      return currentLeads.slice(start, end);
-    }
-
-    function renderizarPrincipal() {
-      const leads = getLeadsPaginaAtual();
-
-      leadList.innerHTML = "";
-
-      if (currentLeads.length === 0) {
-        leadList.innerHTML = `
-          <div class="empty">
-            Nenhum lead novo na tela principal.
-            <br />
-            Busque novos leads ou clique em "Buscar Mais Novos".
-          </div>
-        `;
-      } else {
-        for (const lead of leads) {
-          const id = getLeadId(lead);
-          const selected = selectedPlaceIds.has(id);
-
-          const card = document.createElement("article");
-          card.className = `lead-card ${selected ? "selected" : ""}`;
-
-          card.innerHTML = `
-            <div class="check-area">
-              <input
-                type="checkbox"
-                ${selected ? "checked" : ""}
-                data-action="toggle"
-                data-id="${id}"
-              />
-            </div>
-
-            <span class="badge badge-new">Novo</span>
-
-            <h3>${escapeHtml(lead.nome)}</h3>
-
-            <p>${escapeHtml(lead.endereco || "Endereço não informado")}</p>
-
-            <p>
-              <strong>Telefone:</strong>
-              ${escapeHtml(lead.telefone || "Não informado")}
-            </p>
-
-            <p>
-              <strong>Nota:</strong>
-              ${lead.rating ? escapeHtml(String(lead.rating)) : "Sem nota"}
-              ${lead.avaliacoes ? ` (${escapeHtml(String(lead.avaliacoes))} avaliações)` : ""}
-            </p>
-
-            ${
-              lead.site
-                ? `<p><a href="${escapeAttribute(lead.site)}" target="_blank">Site</a></p>`
-                : `<p class="muted">Sem site informado</p>`
-            }
-
-            ${
-              lead.googleUrl
-                ? `<p><a href="${escapeAttribute(lead.googleUrl)}" target="_blank">Abrir no Google</a></p>`
-                : ""
-            }
-
-            <div class="lead-actions">
-              <button class="btn-success" data-action="salvar" data-id="${id}">
-                Salvar
-              </button>
-
-              <button class="btn-warning" data-action="crm" data-id="${id}">
-                Enviar CRM
-              </button>
-            </div>
-          `;
-
-          leadList.appendChild(card);
-        }
-      }
-
-      const totalPages = getTotalPages();
-
-      pageInfo.textContent = `Página ${currentPage} de ${totalPages}`;
-      prevPageBtn.disabled = currentPage <= 1;
-      nextPageBtn.disabled = currentPage >= totalPages;
-    }
-
-    function renderizarHistorico(lista, container, tipo) {
-      container.innerHTML = "";
-
-      if (lista.length === 0) {
-        container.innerHTML = `
-          <div class="empty">
-            Nenhum lead em ${tipo === "salvo" ? "salvos" : "CRM"} ainda.
-          </div>
-        `;
-        return;
-      }
-
-      for (const lead of lista) {
-        const isCrm = tipo === "crm";
-
-        const card = document.createElement("article");
-        card.className = "lead-card used";
-
-        card.innerHTML = `
-          <span class="badge ${isCrm ? "badge-crm" : "badge-saved"}">
-            ${isCrm ? "Enviado ao CRM" : "Já salvo"}
-          </span>
-
-          <h3>${escapeHtml(lead.nome)}</h3>
-
-          <p>${escapeHtml(lead.endereco || "Endereço não informado")}</p>
-
-          <p>
-            <strong>Telefone:</strong>
-            ${escapeHtml(lead.telefone || "Não informado")}
-          </p>
-
-          ${
-            lead.site
-              ? `<p><a href="${escapeAttribute(lead.site)}" target="_blank">Site</a></p>`
-              : `<p class="muted">Sem site informado</p>`
-          }
-
-          <div class="lead-actions">
-            <button disabled>
-              Não selecionável
-            </button>
-          </div>
-        `;
-
-        container.appendChild(card);
-      }
-    }
-
-    function renderizarStats() {
-      statNovos.textContent = currentLeads.length;
-      statSalvos.textContent = savedLeads.length;
-      statCrm.textContent = crmLeads.length;
-      statIgnorados.textContent = stats.ignorados;
-      statConsultas.textContent = stats.consultas;
-    }
-
-    function renderizarTudo() {
-      renderizarPrincipal();
-      renderizarHistorico(savedLeads, savedList, "salvo");
-      renderizarHistorico(crmLeads, crmList, "crm");
-      renderizarStats();
-    }
-
-    function escapeHtml(value) {
-      return String(value || "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function escapeAttribute(value) {
-      return escapeHtml(value);
-    }
-
-    buscarBtn.addEventListener("click", iniciarNovaBusca);
-
-    carregarMaisBtn.addEventListener("click", () => {
-      carregarMaisNovos(false);
-    });
-
-    salvarSelecionadosBtn.addEventListener("click", salvarSelecionados);
-
-    crmSelecionadosBtn.addEventListener("click", enviarSelecionadosParaCRM);
-
-    leadList.addEventListener("click", event => {
-      const target = event.target;
-      const action = target.dataset.action;
-      const id = target.dataset.id;
-
-      if (!action || !id) return;
-
-      if (action === "salvar") {
-        salvarLead(id);
-      }
-
-      if (action === "crm") {
-        enviarLeadParaCRM(id);
-      }
-    });
-
-    leadList.addEventListener("change", event => {
-      const target = event.target;
-      const action = target.dataset.action;
-      const id = target.dataset.id;
-
-      if (action === "toggle" && id) {
-        toggleSelecionado(id);
-      }
-    });
-
-    prevPageBtn.addEventListener("click", () => {
-      if (currentPage > 1) {
-        currentPage -= 1;
-        renderizarPrincipal();
-      }
-    });
-
-    nextPageBtn.addEventListener("click", () => {
-      if (currentPage < getTotalPages()) {
-        currentPage += 1;
-        renderizarPrincipal();
-      }
-    });
-
-    document.querySelectorAll(".tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        const tabName = tab.dataset.tab;
-
-        document.querySelectorAll(".tab").forEach(item => {
-          item.classList.remove("active");
-        });
-
-        document.querySelectorAll(".panel").forEach(panel => {
-          panel.classList.remove("active");
-        });
-
-        tab.classList.add("active");
-        document.getElementById(tabName).classList.add("active");
-      });
-    });
-
-    renderizarTudo();
-  </script>
-</body>
-</html>
+  }
+</style>
