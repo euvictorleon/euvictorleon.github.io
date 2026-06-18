@@ -3,575 +3,2173 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VI Hunt Leads</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <title>VL Hunt Leads</title>
 
   <style>
+    :root {
+      --green: #10b981;
+      --green-dark: #059669;
+      --green-soft: #ecfdf5;
+      --blue-soft: #eaf2ff;
+      --pink: #ec4899;
+      --yellow: #fbbf24;
+      --text: #111827;
+      --muted: #64748b;
+      --border: #e5e7eb;
+      --bg: #f3f6f9;
+      --card: #ffffff;
+      --sidebar: #ffffff;
+      --shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+      --radius: 16px;
+    }
+
     * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-      font-family: "Inter", sans-serif;
     }
 
     body {
-      background: #06120f;
-      color: #ffffff;
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
     }
 
-    a {
-      text-decoration: none;
-      color: inherit;
+    button,
+    input,
+    select,
+    textarea {
+      font-family: inherit;
     }
 
-    .container {
-      width: min(1120px, 92%);
-      margin: 0 auto;
+    .app {
+      min-height: 100vh;
+      display: flex;
     }
 
-    header {
-      padding: 24px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      background: rgba(6,18,15,0.92);
-      position: sticky;
+    .sidebar {
+      width: 242px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      position: fixed;
+      left: 0;
       top: 0;
+      bottom: 0;
       z-index: 10;
-      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand {
+      height: 86px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      width: 43px;
+      height: 43px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 900;
+      font-size: 20px;
+    }
+
+    .brand strong {
+      display: block;
+      font-size: 15px;
+      line-height: 18px;
+    }
+
+    .brand span {
+      display: block;
+      font-size: 12px;
+      color: var(--green-dark);
+      font-weight: 900;
+      letter-spacing: 0.5px;
     }
 
     .nav {
+      padding: 22px 0;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .nav-title {
+      color: #94a3b8;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.7px;
+      padding: 0 0 8px 0;
+      text-transform: uppercase;
+    }
+
+    .nav-section {
+      padding: 0 18px 18px 0;
+    }
+
+    .nav-item {
+      height: 44px;
       display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 15px;
+      margin-right: 18px;
+      border-radius: 0 10px 10px 0;
+      color: #475569;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      background: var(--green-soft);
+      color: var(--green-dark);
+    }
+
+    .nav-item .count {
+      margin-left: auto;
+      background: #e2e8f0;
+      color: #64748b;
+      min-width: 20px;
+      height: 18px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .btn-new-folder {
+      width: calc(100% - 18px);
+      height: 39px;
+      margin-right: 18px;
+      border: 1px dashed #cbd5e1;
+      background: white;
+      border-radius: 9px;
+      color: #64748b;
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 13px;
+      transition: 0.2s;
+    }
+
+    .btn-new-folder:hover {
+      border-color: var(--green);
+      color: var(--green-dark);
+      background: var(--green-soft);
+    }
+
+    .user-box {
+      border-top: 1px solid var(--border);
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .avatar {
+      width: 37px;
+      height: 37px;
+      border-radius: 50%;
+      background: var(--green);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+    }
+
+    .user-box strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .user-box span {
+      display: block;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .main {
+      margin-left: 242px;
+      min-height: 100vh;
+      width: calc(100% - 242px);
+    }
+
+    .topbar {
+      height: 101px;
+      background: white;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 34px;
+    }
+
+    .topbar h1 {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .topbar p {
+      color: #64748b;
+      font-size: 14px;
+    }
+
+    .badge-results {
+      background: var(--green-soft);
+      color: var(--green-dark);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-weight: 900;
+      font-size: 13px;
+      display: none;
+      white-space: nowrap;
+    }
+
+    .content {
+      padding: 30px 35px;
+    }
+
+    .search-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px;
+      box-shadow: var(--shadow);
+      margin-bottom: 25px;
+    }
+
+    .card-title {
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      margin-bottom: 17px;
+      text-transform: uppercase;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr 154px;
+      gap: 14px;
+      align-items: end;
+    }
+
+    .advanced-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 13px;
+      font-weight: 900;
+      margin-bottom: 7px;
+    }
+
+    .field input,
+    .field select {
+      width: 100%;
+      height: 46px;
+      border: 1px solid #dbe2ea;
+      border-radius: 10px;
+      padding: 0 14px;
+      outline: none;
+      font-size: 14px;
+      background: white;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+    }
+
+    .btn-primary {
+      height: 46px;
+      border: 0;
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border-radius: 10px;
+      padding: 0 18px;
+      font-size: 14px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(16, 185, 129, 0.18);
+      transition: 0.2s;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .results {
+      display: none;
+    }
+
+    .results-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 8px 0 16px;
+      gap: 15px;
+    }
+
+    .results-head h2 {
+      font-size: 18px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .btn-outline {
+      height: 39px;
+      padding: 0 15px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: #64748b;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-outline:hover {
+      border-color: var(--green);
+      color: var(--green-dark);
+      background: var(--green-soft);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(230px, 1fr));
+      gap: 17px;
+    }
+
+    .lead-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+      display: flex;
+      flex-direction: column;
+      min-height: 386px;
+    }
+
+    .photo {
+      width: 100%;
+      height: 155px;
+      object-fit: cover;
+      background: #e8eef5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 35px;
+      color: #64748b;
+    }
+
+    .lead-body {
+      padding: 15px 16px 12px;
+      flex: 1;
+    }
+
+    .lead-name {
+      font-size: 15px;
+      font-weight: 900;
+      line-height: 1.25;
+      margin-bottom: 8px;
+    }
+
+    .lead-address {
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.45;
+      min-height: 38px;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 13px;
+    }
+
+    .pill {
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: #64748b;
+      padding: 7px 10px;
+      font-size: 11px;
+      font-weight: 900;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .pill-rating {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .pill-site {
+      color: #0369a1;
+      background: #e0f2fe;
+    }
+
+    .pill-locked {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .pill-exported {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .lead-actions {
+      border-top: 1px solid var(--border);
+      background: #fbfcfe;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .btn-save,
+    .btn-map,
+    .btn-detail,
+    .btn-pipe,
+    .btn-locked {
+      height: 38px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn-save {
+      border: 1px solid #a7f3d0;
+      background: var(--green-soft);
+      color: var(--green-dark);
+    }
+
+    .btn-save:hover {
+      background: #d1fae5;
+    }
+
+    .btn-map,
+    .btn-detail {
+      border: 1px solid var(--border);
+      background: white;
+      color: #64748b;
+    }
+
+    .btn-map:hover,
+    .btn-detail:hover {
+      border-color: #bfdbfe;
+      color: #2563eb;
+      background: #eff6ff;
+    }
+
+    .btn-pipe {
+      border: 1px solid #c4b5fd;
+      background: #f5f3ff;
+      color: #6d28d9;
+    }
+
+    .btn-pipe:hover {
+      background: #ede9fe;
+    }
+
+    .btn-locked {
+      border: 1px solid #e5e7eb;
+      background: #f3f4f6;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .saved-toolbar {
+      display: none;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .dash-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      background: #fbfdff;
+    }
+
+    .dash-card span {
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .dash-card strong {
+      display: block;
+      font-size: 22px;
+      margin-top: 4px;
+    }
+
+    .toolbar-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
     }
 
-    .logo {
-      font-size: 22px;
-      font-weight: 800;
-      color: #10b981;
-    }
-
-    .logo span {
-      color: #ffffff;
-    }
-
-    .nav-links {
+    .toolbar-left,
+    .toolbar-right {
       display: flex;
-      gap: 26px;
+      gap: 10px;
+      flex-wrap: wrap;
       align-items: center;
-      font-size: 15px;
-      color: #d1d5db;
     }
 
-    .nav-links a:hover {
-      color: #10b981;
+    .check-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 900;
     }
 
-    .btn {
-      display: inline-flex;
+    .status-select {
+      height: 34px;
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 8px;
+      padding: 0 8px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #475569;
+      outline: none;
+    }
+
+    .lead-check {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      width: 19px;
+      height: 19px;
+      accent-color: var(--green);
+      z-index: 2;
+    }
+
+    .lead-card.saved-card {
+      position: relative;
+    }
+
+    .load-more-wrap {
+      display: none;
+      justify-content: center;
+      margin-top: 22px;
+    }
+
+    .btn-load-more {
+      height: 44px;
+      border: 1.5px solid #bbf7d0;
+      background: var(--green-soft);
+      color: var(--green-dark);
+      border-radius: 12px;
+      padding: 0 22px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 900;
+      transition: 0.2s;
+    }
+
+    .btn-load-more:hover {
+      background: #d1fae5;
+      transform: translateY(-1px);
+    }
+
+    .state {
+      margin-top: 80px;
+      text-align: center;
+      color: #64748b;
+    }
+
+    .state-icon {
+      width: 76px;
+      height: 76px;
+      border-radius: 24px;
+      background: #e8eef5;
+      display: flex;
       align-items: center;
       justify-content: center;
-      padding: 14px 22px;
-      border-radius: 999px;
-      background: #10b981;
-      color: #03110d;
-      font-weight: 800;
-      transition: 0.25s;
-      border: none;
-      cursor: pointer;
+      margin: 0 auto 18px;
+      font-size: 34px;
     }
 
-    .btn:hover {
-      transform: translateY(-2px);
-      background: #34d399;
-    }
-
-    .btn-outline {
-      background: transparent;
-      color: #ffffff;
-      border: 1px solid rgba(255,255,255,0.18);
-    }
-
-    .btn-outline:hover {
-      background: rgba(255,255,255,0.08);
-      color: #ffffff;
-    }
-
-    .hero {
-      padding: 90px 0 70px;
-      background:
-        radial-gradient(circle at top left, rgba(16,185,129,0.22), transparent 34%),
-        radial-gradient(circle at bottom right, rgba(52,211,153,0.12), transparent 28%);
-    }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 50px;
-      align-items: center;
-    }
-
-    .badge {
-      display: inline-flex;
-      padding: 8px 14px;
-      border-radius: 999px;
-      background: rgba(16,185,129,0.12);
-      border: 1px solid rgba(16,185,129,0.25);
-      color: #6ee7b7;
-      font-weight: 700;
-      font-size: 14px;
-      margin-bottom: 22px;
-    }
-
-    h1 {
-      font-size: clamp(40px, 6vw, 72px);
-      line-height: 1.02;
-      letter-spacing: -2px;
-      margin-bottom: 22px;
-    }
-
-    h1 span {
-      color: #10b981;
-    }
-
-    .hero p {
-      color: #d1d5db;
-      font-size: 19px;
-      line-height: 1.7;
-      margin-bottom: 32px;
-      max-width: 640px;
-    }
-
-    .hero-actions {
-      display: flex;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-bottom: 30px;
-    }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-      margin-top: 28px;
-    }
-
-    .stat-card {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 18px;
-      padding: 18px;
-    }
-
-    .stat-card strong {
-      display: block;
-      font-size: 26px;
-      color: #10b981;
-      margin-bottom: 4px;
-    }
-
-    .stat-card span {
-      color: #cbd5e1;
-      font-size: 14px;
-    }
-
-    .mockup {
-      background: linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 28px;
-      padding: 24px;
-      box-shadow: 0 30px 80px rgba(0,0,0,0.38);
-    }
-
-    .mockup-top {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-
-    .dot {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #10b981;
-    }
-
-    .lead-card {
-      background: #081a15;
-      border: 1px solid rgba(255,255,255,0.10);
-      border-radius: 18px;
-      padding: 18px;
-      margin-bottom: 14px;
-    }
-
-    .lead-card h3 {
-      font-size: 17px;
+    .state h2 {
+      color: #111827;
+      font-size: 20px;
       margin-bottom: 8px;
     }
 
-    .lead-card p {
-      font-size: 14px;
-      color: #a7f3d0;
-      margin: 0;
-      line-height: 1.5;
-    }
-
-    section {
-      padding: 80px 0;
-    }
-
-    .section-title {
+    .loading {
+      display: none;
+      margin-top: 80px;
       text-align: center;
-      margin-bottom: 48px;
     }
 
-    .section-title h2 {
-      font-size: clamp(30px, 4vw, 46px);
-      margin-bottom: 14px;
-      letter-spacing: -1px;
-    }
-
-    .section-title p {
-      color: #cbd5e1;
-      font-size: 17px;
-      max-width: 680px;
-      margin: 0 auto;
-      line-height: 1.6;
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-    }
-
-    .card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 22px;
-      padding: 28px;
-    }
-
-    .icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 14px;
-      background: rgba(16,185,129,0.14);
-      color: #10b981;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      margin-bottom: 18px;
-    }
-
-    .card h3 {
-      font-size: 21px;
-      margin-bottom: 12px;
-    }
-
-    .card p {
-      color: #cbd5e1;
-      line-height: 1.6;
-      font-size: 15px;
-    }
-
-    .process {
-      background: #081a15;
-    }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 18px;
-    }
-
-    .step {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 20px;
-      padding: 24px;
-    }
-
-    .step-number {
-      width: 36px;
-      height: 36px;
-      background: #10b981;
-      color: #03110d;
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid #dbeafe;
+      border-top-color: var(--green);
       border-radius: 50%;
-      display: flex;
+      margin: 0 auto 18px;
+      animation: spin 0.85s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.48);
+      display: none;
       align-items: center;
       justify-content: center;
-      font-weight: 800;
-      margin-bottom: 16px;
+      z-index: 99;
+      padding: 20px;
     }
 
-    .step h3 {
-      margin-bottom: 10px;
+    .modal {
+      background: white;
+      width: 430px;
+      max-width: 100%;
+      border-radius: 18px;
+      box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+      overflow: hidden;
+    }
+
+    .modal.large {
+      width: 720px;
+    }
+
+    .modal-head {
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .modal-head h3 {
       font-size: 18px;
+      margin-bottom: 4px;
     }
 
-    .step p {
-      color: #cbd5e1;
-      line-height: 1.55;
+    .modal-head p {
+      color: #64748b;
+      font-size: 13px;
+    }
+
+    .modal-close {
+      border: 0;
+      background: #f1f5f9;
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-weight: 900;
+    }
+
+    .modal-body {
+      padding: 20px 22px;
+    }
+
+    .modal-actions {
+      padding: 16px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .detail-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .detail-item {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 13px;
+    }
+
+    .detail-item span {
+      display: block;
+      color: #64748b;
+      font-size: 12px;
+      font-weight: 900;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .detail-item strong,
+    .detail-item a {
       font-size: 14px;
+      color: #111827;
+      word-break: break-word;
     }
 
-    .cta {
-      text-align: center;
-      background:
-        radial-gradient(circle at center, rgba(16,185,129,0.22), transparent 38%),
-        #06120f;
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      min-width: 240px;
+      max-width: 360px;
+      background: #111827;
+      color: white;
+      padding: 13px 15px;
+      border-radius: 12px;
+      box-shadow: 0 16px 35px rgba(15, 23, 42, 0.25);
+      display: none;
+      z-index: 120;
+      font-size: 13px;
+      font-weight: 800;
     }
 
-    .cta-box {
-      background: linear-gradient(145deg, rgba(16,185,129,0.16), rgba(255,255,255,0.04));
-      border: 1px solid rgba(16,185,129,0.24);
-      border-radius: 28px;
-      padding: 54px 26px;
+    .toast.error {
+      background: #991b1b;
     }
 
-    .cta h2 {
-      font-size: clamp(30px, 4vw, 48px);
-      margin-bottom: 14px;
+    #map {
+      display: none;
+      width: 0;
+      height: 0;
     }
 
-    .cta p {
-      color: #d1d5db;
-      max-width: 650px;
-      margin: 0 auto 28px;
-      line-height: 1.7;
-      font-size: 17px;
-    }
-
-    footer {
-      padding: 30px 0;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      color: #9ca3af;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    @media (max-width: 900px) {
-      .hero-grid {
-        grid-template-columns: 1fr;
+    @media (max-width: 1250px) {
+      .grid {
+        grid-template-columns: repeat(3, minmax(230px, 1fr));
       }
 
-      .cards {
-        grid-template-columns: 1fr;
-      }
-
-      .steps {
+      .form-grid {
         grid-template-columns: 1fr 1fr;
       }
 
-      .nav-links {
-        display: none;
+      .advanced-grid {
+        grid-template-columns: 1fr 1fr;
       }
     }
 
-    @media (max-width: 560px) {
-      .stats {
+    @media (max-width: 900px) {
+      .sidebar {
+        width: 78px;
+      }
+
+      .brand div:not(.logo),
+      .nav-title,
+      .nav-item span.label,
+      .user-box div:not(.avatar),
+      .nav-item .count {
+        display: none;
+      }
+
+      .main {
+        margin-left: 78px;
+        width: calc(100% - 78px);
+      }
+
+      .grid {
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+      }
+
+      .dashboard {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .topbar {
+        height: auto;
+        padding: 20px;
+        align-items: flex-start;
+        gap: 12px;
+        flex-direction: column;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      .form-grid,
+      .advanced-grid,
+      .grid {
         grid-template-columns: 1fr;
       }
 
-      .steps {
-        grid-template-columns: 1fr;
-      }
-
-      .hero {
-        padding-top: 64px;
+      .results-head {
+        align-items: flex-start;
+        flex-direction: column;
       }
     }
   </style>
 </head>
 
 <body>
-  <header>
-    <div class="container nav">
-      <a href="#" class="logo">VI <span>Hunt Leads</span></a>
+  <div id="map"></div>
 
-      <nav class="nav-links">
-        <a href="#beneficios">Benefícios</a>
-        <a href="#processo">Como funciona</a>
-        <a href="#contato">Contato</a>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">⚡</div>
+        <div>
+          <strong>VL Hunt</strong>
+          <span>LEADS</span>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-section">
+          <div class="nav-title">Menu</div>
+
+          <div class="nav-item active" id="nav-search" onclick="showSearch()">
+            🔍 <span class="label">Buscar Leads</span>
+          </div>
+
+          <div class="nav-item" onclick="showAllSaved()">
+            📁 <span class="label">Leads Salvos</span>
+          </div>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-title">Comerciais</div>
+          <div id="folders-list"></div>
+          <button class="btn-new-folder" onclick="createFolder()">+ Novo Comercial</button>
+        </div>
       </nav>
 
-      <a class="btn" href="#contato">Quero leads</a>
-    </div>
-  </header>
-
-  <main>
-    <section class="hero">
-      <div class="container hero-grid">
+      <div class="user-box">
+        <div class="avatar">V</div>
         <div>
-          <div class="badge">Prospecção inteligente para empresas</div>
+          <strong>Victor</strong>
+          <span>Administrador</span>
+        </div>
+      </div>
+    </aside>
 
-          <h1>
-            Encontre clientes certos com mais velocidade e <span>menos esforço</span>.
-          </h1>
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 id="page-title">Nova Busca de Leads</h1>
+          <p id="page-subtitle">Encontre empresas pelo Google Maps em segundos</p>
+        </div>
 
-          <p>
-            A VI Hunt Leads ajuda empresas a identificarem oportunidades comerciais,
-            organizarem contatos estratégicos e acelerarem o processo de prospecção.
-          </p>
+        <div class="badge-results" id="badge-results">0 leads</div>
+      </header>
 
-          <div class="hero-actions">
-            <a href="#contato" class="btn">Começar agora</a>
-            <a href="#beneficios" class="btn btn-outline">Ver benefícios</a>
-          </div>
+      <section class="content">
+        <div id="search-area">
+          <div class="search-card">
+            <div class="card-title">🎯 Parâmetros da busca</div>
 
-          <div class="stats">
-            <div class="stat-card">
-              <strong>+Leads</strong>
-              <span>Mais oportunidades comerciais</span>
+            <div class="form-grid">
+              <div class="field">
+                <label>Nicho / Tipo de empresa</label>
+                <input id="input-nicho" type="text" value="Empresa" placeholder="Ex: restaurante, clínica, indústria" />
+              </div>
+
+              <div class="field">
+                <label>Cidade</label>
+                <input id="input-cidade" type="text" value="Curitiba" placeholder="Ex: Curitiba" />
+              </div>
+
+              <div class="field">
+                <label>Bairro opcional</label>
+                <input id="input-bairro" type="text" value="Bacacheri" placeholder="Ex: Bacacheri" />
+              </div>
+
+              <button class="btn-primary" id="btn-search" onclick="startSearch()">⚡ Extrair Leads</button>
             </div>
 
-            <div class="stat-card">
-              <strong>+Foco</strong>
-              <span>Menos tempo procurando contatos</span>
+            <div class="advanced-grid">
+              <div class="field">
+                <label>Avaliação mínima</label>
+                <select id="filter-rating">
+                  <option value="0">Qualquer avaliação</option>
+                  <option value="3">A partir de 3 estrelas</option>
+                  <option value="4">A partir de 4 estrelas</option>
+                  <option value="4.5">A partir de 4.5 estrelas</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Telefone</label>
+                <select id="filter-phone">
+                  <option value="all">Todos</option>
+                  <option value="only">Somente com telefone</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Site</label>
+                <select id="filter-site">
+                  <option value="all">Todos</option>
+                  <option value="only">Somente com site</option>
+                  <option value="without">Somente sem site</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label>Status bloqueado</label>
+                <select id="filter-locked">
+                  <option value="all">Mostrar todos</option>
+                  <option value="available">Somente disponíveis</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="loading" id="loading-state">
+            <div class="spinner"></div>
+            <h2 id="loading-title">Buscando leads...</h2>
+            <p id="loading-subtitle">Consultando Google Maps.</p>
+          </div>
+
+          <div class="state" id="empty-state">
+            <div class="state-icon">🎯</div>
+            <h2>Pronto para caçar leads?</h2>
+            <p>Digite o nicho, cidade e clique em “Extrair Leads”.</p>
+          </div>
+
+          <div class="results" id="results-section">
+            <div class="results-head">
+              <h2 id="results-title">0 leads encontrados</h2>
+
+              <div class="actions">
+                <button class="btn-outline" onclick="applyFilters()">🔎 Aplicar filtros</button>
+                <button class="btn-outline" onclick="exportCSV()">📥 Exportar CSV</button>
+                <button class="btn-outline" onclick="resetSearch()">🔄 Nova Busca</button>
+              </div>
             </div>
 
-            <div class="stat-card">
-              <strong>+Vendas</strong>
-              <span>Processo comercial mais eficiente</span>
+            <div class="grid" id="leads-grid"></div>
+
+            <div class="load-more-wrap" id="load-more-wrap">
+              <button class="btn-load-more" onclick="loadMoreLeads()">➕ Carregar mais leads</button>
             </div>
           </div>
         </div>
 
-        <div class="mockup">
-          <div class="mockup-top">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
+        <div id="saved-area" style="display: none;">
+          <div class="saved-toolbar" id="saved-toolbar">
+            <div class="dashboard" id="dashboard"></div>
+
+            <div class="toolbar-row">
+              <div class="toolbar-left">
+                <label class="check-wrap">
+                  <input type="checkbox" id="select-all-saved" onchange="toggleSelectAllSaved()" />
+                  Selecionar todos
+                </label>
+
+                <select class="status-select" id="saved-status-filter" onchange="renderSavedView()">
+                  <option value="all">Todos os status</option>
+                  <option value="novo">Novo</option>
+                  <option value="em_contato">Em contato</option>
+                  <option value="qualificado">Qualificado</option>
+                  <option value="exportado">Exportado</option>
+                  <option value="descartado">Descartado</option>
+                </select>
+              </div>
+
+              <div class="toolbar-right">
+                <button class="btn-outline" onclick="exportSelectedCSV()">📥 CSV selecionados</button>
+                <button class="btn-outline" onclick="exportSelectedToPipedrive()">💼 Exportar lote Pipedrive</button>
+                <button class="btn-outline" onclick="configurePipedrive()">⚙️ Token Pipedrive</button>
+              </div>
+            </div>
           </div>
 
-          <div class="lead-card">
-            <h3>Lead encontrado</h3>
-            <p>Empresa com perfil ideal para abordagem comercial.</p>
+          <div class="state" id="saved-empty-state">
+            <div class="state-icon">📁</div>
+            <h2>Nenhum lead salvo</h2>
+            <p>Salve leads para começar a organizar por comercial.</p>
           </div>
 
-          <div class="lead-card">
-            <h3>Contato qualificado</h3>
-            <p>Dados organizados para facilitar sua prospecção.</p>
-          </div>
+          <div class="grid" id="saved-grid"></div>
+        </div>
+      </section>
+    </main>
+  </div>
 
-          <div class="lead-card">
-            <h3>Oportunidade priorizada</h3>
-            <p>Mais clareza para sua equipe focar nos melhores clientes.</p>
-          </div>
+  <div class="modal-backdrop" id="save-modal">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h3>Salvar lead</h3>
+          <p>Escolha para qual comercial esse lead será salvo.</p>
+        </div>
+
+        <button class="modal-close" onclick="closeSaveModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="field">
+          <label>Comercial</label>
+          <select id="modal-folder"></select>
         </div>
       </div>
-    </section>
 
-    <section id="beneficios">
-      <div class="container">
-        <div class="section-title">
-          <h2>Por que usar a VI Hunt Leads?</h2>
-          <p>
-            Criamos uma estrutura simples para transformar pesquisa de mercado
-            em oportunidades reais para o seu negócio.
-          </p>
-        </div>
-
-        <div class="cards">
-          <div class="card">
-            <div class="icon">🎯</div>
-            <h3>Leads mais qualificados</h3>
-            <p>
-              Foque em empresas e contatos que realmente fazem sentido para
-              sua oferta, evitando perda de tempo com listas aleatórias.
-            </p>
-          </div>
-
-          <div class="card">
-            <div class="icon">⚡</div>
-            <h3>Mais velocidade</h3>
-            <p>
-              Reduza o tempo gasto procurando contatos manualmente e aumente
-              sua produtividade comercial.
-            </p>
-          </div>
-
-          <div class="card">
-            <div class="icon">📈</div>
-            <h3>Processo comercial melhor</h3>
-            <p>
-              Tenha mais organização na prospecção e melhore a previsibilidade
-              das suas abordagens.
-            </p>
-          </div>
-        </div>
+      <div class="modal-actions">
+        <button class="btn-outline" onclick="closeSaveModal()">Cancelar</button>
+        <button class="btn-primary" onclick="confirmSave()">Salvar lead</button>
       </div>
-    </section>
-
-    <section class="process" id="processo">
-      <div class="container">
-        <div class="section-title">
-          <h2>Como funciona</h2>
-          <p>
-            Um processo direto para você sair da ideia e chegar em contatos
-            com potencial de compra.
-          </p>
-        </div>
-
-        <div class="steps">
-          <div class="step">
-            <div class="step-number">1</div>
-            <h3>Definição do perfil</h3>
-            <p>Entendemos qual tipo de cliente sua empresa quer alcançar.</p>
-          </div>
-
-          <div class="step">
-            <div class="step-number">2</div>
-            <h3>Busca estratégica</h3>
-            <p>Mapeamos empresas e contatos alinhados com seu público-alvo.</p>
-          </div>
-
-          <div class="step">
-            <div class="step-number">3</div>
-            <h3>Organização</h3>
-            <p>Estruturamos os dados para facilitar a análise e abordagem.</p>
-          </div>
-
-          <div class="step">
-            <div class="step-number">4</div>
-            <h3>Prospecção</h3>
-            <p>Sua equipe comercial ganha clareza para iniciar as conversas.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="cta" id="contato">
-      <div class="container">
-        <div class="cta-box">
-          <h2>Quer encontrar mais clientes?</h2>
-          <p>
-            Fale com a VI Hunt Leads e descubra como organizar sua prospecção
-            para gerar mais oportunidades comerciais.
-          </p>
-
-          <a
-            class="btn"
-            href="https://wa.me/5544999999999?text=Olá,%20tenho%20interesse%20na%20VI%20Hunt%20Leads"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Chamar no WhatsApp
-          </a>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <footer>
-    <div class="container">
-      © 2026 VI Hunt Leads. Todos os direitos reservados.
     </div>
-  </footer>
+  </div>
+
+  <div class="modal-backdrop" id="detail-modal">
+    <div class="modal large">
+      <div class="modal-head">
+        <div>
+          <h3 id="detail-title">Detalhes do lead</h3>
+          <p id="detail-subtitle">Informações completas do Google Maps.</p>
+        </div>
+
+        <button class="modal-close" onclick="closeDetailModal()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-list" id="detail-content"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-outline" onclick="closeDetailModal()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const GOOGLE_MAPS_API_KEY = "AIzaSyBRd4KUJR3Rk4k98OOJVDtSfExn4ENVq0U";
+    const STORAGE_KEY = "vl_hunt_leads";
+    const PIPEDRIVE_KEY = "vl_hunt_pipedrive_token";
+
+    let googleReady = false;
+    let placesService = null;
+
+    let allLeads = [];
+    let filteredLeads = [];
+    let visibleLeadCount = 20;
+    let leadsPerPage = 20;
+
+    let currentLeadIndex = null;
+    let currentFolder = null;
+    let currentView = "search";
+
+    let savedLeads = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+
+    if (!savedLeads.Geral) {
+      savedLeads.Geral = [];
+      saveStorage();
+    }
+
+    function initGoogle() {
+      googleReady = true;
+      const mapElement = document.getElementById("map");
+      const map = new google.maps.Map(mapElement, {
+        center: { lat: -25.4284, lng: -49.2733 },
+        zoom: 12
+      });
+
+      placesService = new google.maps.places.PlacesService(map);
+    }
+
+    function saveStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedLeads));
+    }
+
+    function startSearch() {
+      if (!googleReady || !placesService) {
+        showToast("Google Maps ainda não carregou. Aguarde alguns segundos.", "error");
+        return;
+      }
+
+      const nicho = document.getElementById("input-nicho").value.trim();
+      const cidade = document.getElementById("input-cidade").value.trim();
+      const bairro = document.getElementById("input-bairro").value.trim();
+
+      if (!nicho) {
+        showToast("Informe o nicho/tipo de empresa.", "error");
+        return;
+      }
+
+      if (!cidade) {
+        showToast("Informe a cidade.", "error");
+        return;
+      }
+
+      const query = bairro ? `${nicho} ${bairro} ${cidade}` : `${nicho} ${cidade}`;
+
+      allLeads = [];
+      filteredLeads = [];
+      visibleLeadCount = leadsPerPage;
+
+      document.getElementById("empty-state").style.display = "none";
+      document.getElementById("results-section").style.display = "none";
+      document.getElementById("loading-state").style.display = "block";
+      document.getElementById("btn-search").disabled = true;
+      document.getElementById("badge-results").style.display = "none";
+      document.getElementById("load-more-wrap").style.display = "none";
+
+      document.getElementById("loading-title").textContent = "Buscando leads...";
+      document.getElementById("loading-subtitle").textContent = `Pesquisa: ${query}`;
+
+      placesService.textSearch(
+        {
+          query: query,
+          language: "pt-BR",
+          region: "br"
+        },
+        handleTextSearchResults
+      );
+    }
+
+    function handleTextSearchResults(results, status, pagination) {
+      if (status !== google.maps.places.PlacesServiceStatus.OK || !results || !results.length) {
+        finishSearch();
+        return;
+      }
+
+      const pageLeads = results.map(normalizeLead);
+      addUniqueLeads(pageLeads);
+
+      document.getElementById("loading-title").textContent = `Buscando leads... ${allLeads.length} encontrados`;
+      document.getElementById("loading-subtitle").textContent = "Carregando próximas páginas disponíveis do Google Maps.";
+
+      if (pagination && pagination.hasNextPage) {
+        setTimeout(function () {
+          pagination.nextPage();
+        }, 2200);
+      } else {
+        loadLeadDetails();
+      }
+    }
+
+    function normalizeLead(place) {
+      let photoUrl = "";
+
+      if (place.photos && place.photos.length) {
+        try {
+          photoUrl = place.photos[0].getUrl({
+            maxWidth: 700,
+            maxHeight: 420
+          });
+        } catch (error) {
+          photoUrl = "";
+        }
+      }
+
+      return {
+        place_id: place.place_id || "",
+        name: place.name || "",
+        formatted_address: place.formatted_address || place.vicinity || "",
+        rating: place.rating || "",
+        user_ratings_total: place.user_ratings_total || "",
+        formatted_phone_number: "",
+        international_phone_number: "",
+        website: "",
+        url: "",
+        business_status: place.business_status || "",
+        types: place.types || [],
+        photo_url: photoUrl,
+        saved_at: "",
+        commercial: "",
+        status: "novo",
+        exported_to_pipedrive: false,
+        pipedrive_person_id: "",
+        pipedrive_org_id: "",
+        pipedrive_deal_id: ""
+      };
+    }
+
+    function addUniqueLeads(leads) {
+      leads.forEach(function (lead) {
+        const exists = allLeads.some(function (item) {
+          return isSameLead(item, lead);
+        });
+
+        if (!exists) {
+          allLeads.push(lead);
+        }
+      });
+    }
+
+    function loadLeadDetails() {
+      if (!allLeads.length) {
+        finishSearch();
+        return;
+      }
+
+      let index = 0;
+
+      function next() {
+        if (index >= allLeads.length) {
+          finishSearch();
+          return;
+        }
+
+        const lead = allLeads[index];
+
+        document.getElementById("loading-title").textContent = `Enriquecendo leads... ${index + 1}/${allLeads.length}`;
+        document.getElementById("loading-subtitle").textContent = lead.name || "Buscando telefone e site.";
+
+        if (!lead.place_id) {
+          index++;
+          next();
+          return;
+        }
+
+        placesService.getDetails(
+          {
+            placeId: lead.place_id,
+            fields: [
+              "name",
+              "formatted_address",
+              "formatted_phone_number",
+              "international_phone_number",
+              "website",
+              "url",
+              "rating",
+              "user_ratings_total",
+              "business_status",
+              "types",
+              "photos"
+            ],
+            language: "pt-BR",
+            region: "br"
+          },
+          function (details, status) {
+            if (status === google.maps.places.PlacesServiceStatus.OK && details) {
+              allLeads[index] = {
+                ...lead,
+                name: details.name || lead.name,
+                formatted_address: details.formatted_address || lead.formatted_address,
+                formatted_phone_number: details.formatted_phone_number || "",
+                international_phone_number: details.international_phone_number || "",
+                website: details.website || "",
+                url: details.url || "",
+                rating: details.rating || lead.rating || "",
+                user_ratings_total: details.user_ratings_total || lead.user_ratings_total || "",
+                business_status: details.business_status || lead.business_status || "",
+                types: details.types || lead.types || []
+              };
+
+              if (details.photos && details.photos.length) {
+                try {
+                  allLeads[index].photo_url = details.photos[0].getUrl({
+                    maxWidth: 700,
+                    maxHeight: 420
+                  });
+                } catch (error) {}
+              }
+            }
+
+            index++;
+
+            setTimeout(next, 180);
+          }
+        );
+      }
+
+      next();
+    }
+
+    function finishSearch() {
+      document.getElementById("loading-state").style.display = "none";
+      document.getElementById("btn-search").disabled = false;
+
+      if (!allLeads.length) {
+        document.getElementById("empty-state").style.display = "block";
+        document.getElementById("empty-state").innerHTML = `
+          <div class="state-icon">🔎</div>
+          <h2>Nenhum lead encontrado</h2>
+          <p>Tente mudar o nicho, cidade ou remover o bairro.</p>
+        `;
+        return;
+      }
+
+      filteredLeads = [...allLeads];
+      applyFilters(false);
+
+      const badge = document.getElementById("badge-results");
+      badge.textContent = `${allLeads.length} leads`;
+      badge.style.display = "block";
+
+      document.getElementById("results-section").style.display = "block";
+      showToast(`${allLeads.length} leads encontrados.`);
+    }
+
+    function applyFilters(showMessage = true) {
+      const minRating = Number(document.getElementById("filter-rating").value || 0);
+      const phoneFilter = document.getElementById("filter-phone").value;
+      const siteFilter = document.getElementById("filter-site").value;
+      const lockedFilter = document.getElementById("filter-locked").value;
+
+      filteredLeads = allLeads.filter(function (lead) {
+        const rating = Number(lead.rating || 0);
+        const hasPhone = Boolean(lead.formatted_phone_number);
+        const hasSite = Boolean(lead.website);
+        const isLocked = Boolean(findLeadSavedFolder(lead));
+
+        if (minRating && rating < minRating) return false;
+        if (phoneFilter === "only" && !hasPhone) return false;
+        if (siteFilter === "only" && !hasSite) return false;
+        if (siteFilter === "without" && hasSite) return false;
+        if (lockedFilter === "available" && isLocked) return false;
+
+        return true;
+      });
+
+      visibleLeadCount = leadsPerPage;
+      renderLeads();
+
+      if (showMessage) {
+        showToast(`${filteredLeads.length} leads após filtros.`);
+      }
+    }
+
+    function renderLeads() {
+      const grid = document.getElementById("leads-grid");
+      const loadMoreWrap = document.getElementById("load-more-wrap");
+
+      const visibleLeads = filteredLeads.slice(0, visibleLeadCount);
+
+      grid.innerHTML = visibleLeads.map(function (lead, index) {
+        const realIndex = allLeads.findIndex(function (item) {
+          return isSameLead(item, lead);
+        });
+
+        return buildLeadCard(lead, realIndex, false, "");
+      }).join("");
+
+      document.getElementById("results-title").textContent = `${filteredLeads.length} leads encontrados`;
+
+      if (visibleLeadCount < filteredLeads.length) {
+        loadMoreWrap.style.display = "flex";
+      } else {
+        loadMoreWrap.style.display = "none";
+      }
+    }
+
+    function loadMoreLeads() {
+      visibleLeadCount += leadsPerPage;
+      renderLeads();
+    }
+
+    function buildLeadCard(lead, index, isSavedView, folderName) {
+      const name = escapeHtml(lead.name || "Lead");
+      const address = escapeHtml(lead.formatted_address || "Endereço não disponível");
+      const phone = lead.formatted_phone_number || "";
+      const website = lead.website || "";
+      const rating = lead.rating || "";
+      const totalRatings = lead.user_ratings_total || "";
+      const placeId = lead.place_id || "";
+
+      const lockedFolder = findLeadSavedFolder(lead);
+      const isLocked = Boolean(lockedFolder) && !isSavedView;
+
+      const photoHtml = lead.photo_url
+        ? `<img class="photo" src="${escapeAttr(lead.photo_url)}" alt="${name}" onerror="this.outerHTML='<div class=&quot;photo&quot;>🏢</div>'">`
+        : `<div class="photo">🏢</div>`;
+
+      const ratingHtml = rating
+        ? `<span class="pill pill-rating">⭐ ${escapeHtml(rating)}${totalRatings ? ` (${escapeHtml(totalRatings)})` : ""}</span>`
+        : `<span class="pill">⭐ Sem avaliação</span>`;
+
+      const phoneHtml = phone
+        ? `<span class="pill">📞 ${escapeHtml(phone)}</span>`
+        : `<span class="pill">📞 Sem telefone</span>`;
+
+      const siteHtml = website
+        ? `<a class="pill pill-site" href="${escapeAttr(website)}" target="_blank" rel="noopener">🌐 Site</a>`
+        : `<span class="pill">🌐 Sem site</span>`;
+
+      const exportedHtml = lead.exported_to_pipedrive
+        ? `<span class="pill pill-exported">💼 Exportado</span>`
+        : "";
+
+      const lockedHtml = isLocked
+        ? `<span class="pill pill-locked">🔒 Salvo por ${escapeHtml(lockedFolder)}</span>`
+        : "";
+
+      const mapsUrl = placeId
+        ? `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(placeId)}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((lead.name || "") + " " + (lead.formatted_address || ""))}`;
+
+      let firstButton = "";
+
+      if (isSavedView) {
+        firstButton = `<button class="btn-detail" onclick="openDetailModalSaved('${escapeAttr(folderName)}', ${index})">👁️ Detalhes</button>`;
+      } else if (isLocked) {
+        firstButton = `<button class="btn-locked" disabled>🔒 Indisponível</button>`;
+      } else {
+        firstButton = `<button class="btn-save" onclick="openSaveModal(${index})">💾 Salvar</button>`;
+      }
+
+      const statusHtml = isSavedView
+        ? `
+          <div style="margin-top: 12px;">
+            <select class="status-select" onchange="changeLeadStatus('${escapeAttr(folderName)}', ${index}, this.value)">
+              <option value="novo" ${lead.status === "novo" ? "selected" : ""}>Novo</option>
+              <option value="em_contato" ${lead.status === "em_contato" ? "selected" : ""}>Em contato</option>
+              <option value="qualificado" ${lead.status === "qualificado" ? "selected" : ""}>Qualificado</option>
+              <option value="exportado" ${lead.status === "exportado" ? "selected" : ""}>Exportado</option>
+              <option value="descartado" ${lead.status === "descartado" ? "selected" : ""}>Descartado</option>
+            </select>
+          </div>
+        `
+        : "";
+
+      const checkboxHtml = isSavedView
+        ? `<input class="lead-check saved-checkbox" type="checkbox" data-folder="${escapeAttr(folderName)}" data-index="${index}">`
+        : "";
+
+      const pipedriveButton = isSavedView
+        ? `<button class="btn-pipe" onclick="exportOneToPipedrive('${escapeAttr(folderName)}', ${index})">💼 Pipedrive</button>`
+        : `<button class="btn-detail" onclick="openDetailModalSearch(${index})">👁️ Detalhes</button>`;
+
+      return `
+        <article class="lead-card ${isSavedView ? "saved-card" : ""}">
+          ${checkboxHtml}
+          ${photoHtml}
+
+          <div class="lead-body">
+            <div class="lead-name">${name}</div>
+            <div class="lead-address">📍 ${address}</div>
+
+            <div class="meta">
+              ${ratingHtml}
+              ${phoneHtml}
+              ${siteHtml}
+              ${lockedHtml}
+              ${exportedHtml}
+            </div>
+
+            ${statusHtml}
+          </div>
+
+          <div class="lead-actions">
+            ${firstButton}
+            <button class="btn-map" onclick="window.open('${escapeAttr(mapsUrl)}', '_blank')">🗺️ Maps</button>
+            ${pipedriveButton}
+            <button class="btn-outline" onclick="copyLead('${isSavedView ? "saved" : "search"}', '${escapeAttr(folderName)}', ${index})">📋 Copiar</button>
+          </div>
+        </article>
+      `;
+    }
+
+    function openSaveModal(index) {
+      currentLeadIndex = index;
+
+      const lead = allLeads[index];
+      const alreadySavedFolder = findLeadSavedFolder(lead);
+
+      if (alreadySavedFolder) {
+        showToast(`Esse lead já está salvo para ${alreadySavedFolder}.`, "error");
+        renderLeads();
+        return;
+      }
+
+      renderFolderOptions();
+      document.getElementById("save-modal").style.display = "flex";
+    }
+
+    function closeSaveModal() {
+      currentLeadIndex = null;
+      document.getElementById("save-modal").style.display = "none";
+    }
+
+    function renderFolderOptions() {
+      const select = document.getElementById("modal-folder");
+      const folders = Object.keys(savedLeads);
+
+      select.innerHTML = folders.map(function (folder) {
+        return `<option value="${escapeAttr(folder)}">${escapeHtml(folder)}</option>`;
+      }).join("");
+    }
+
+    function confirmSave() {
+      if (currentLeadIndex === null) return;
+
+      const folder = document.getElementById("modal-folder").value;
+      const lead = allLeads[currentLeadIndex];
+
+      const alreadySavedFolder = findLeadSavedFolder(lead);
+
+      if (alreadySavedFolder) {
+        showToast(`Esse lead já está salvo para ${alreadySavedFolder}.`, "error");
+        closeSaveModal();
+        renderFolders();
+        renderLeads();
+        return;
+      }
+
+      if (!savedLeads[folder]) {
+        savedLeads[folder] = [];
+      }
+
+      const leadToSave = {
+        ...lead,
+        saved_at: new Date().toISOString(),
+        commercial: folder,
+        status: "novo",
+        exported_to_pipedrive: false,
+        pipedrive_person_id: "",
+        pipedrive_org_id: "",
+        pipedrive_deal_id: ""
+      };
+
+      savedLeads[folder].push(leadToSave);
+      saveStorage();
+
+      closeSaveModal();
+      renderFolders();
+      renderLeads();
+
+      showToast(`Lead salvo para ${folder}.`);
+    }
+
+    function findLeadSavedFolder(lead) {
+      for (const folder in savedLeads) {
+        const exists = savedLeads[folder].some(function (item) {
+          return isSameLead(item, lead);
+        });
+
+        if (exists) {
+          return folder;
+        }
+      }
+
+      return null;
+    }
+
+    function isSameLead(leadA, leadB) {
+      if (leadA.place_id && leadB.place_id) {
+        return leadA.place_id === leadB.place_id;
+      }
+
+      return normalizeText(leadA.name) === normalizeText(leadB.name)
+        && normalizeText(leadA.formatted_address) === normalizeText(leadB.formatted_address);
+    }
+
+    function normalizeText(value) {
+      return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\\u0300-\\u036f]/g, "")
+        .replace(/\\s+/g, " ")
+        .trim();
+    }
+
+    function renderFolders() {
+      const container = document.getElementById("folders-list");
+      const folders = Object.keys(savedLeads);
+
+      container.innerHTML = folders.map(function (folder) {
+        const count = savedLeads[folder].length;
+
+        return `
+          <div class="nav-item" onclick="showSavedFolder('${escapeAttr(folder)}')">
+            📂 <span class="label">${escapeHtml(folder)}</span>
+            <span class="count">${count}</span>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function createFolder() {
+      const name = prompt("Nome do comercial:");
+
+      if (!name || !name.trim()) return;
+
+      const folder = name.trim();
+
+      if (savedLeads[folder]) {
+        showToast("Esse comercial já existe.", "error");
+        return;
+      }
+
+      savedLeads[folder] = [];
+      saveStorage();
+      renderFolders();
+      showToast(`Comercial ${folder} criado.`);
+    }
+
+    function showSearch() {
+      currentView = "search";
+      currentFolder = null;
+
+      document.getElementById("search-area").style.display = "block";
+      document.getElementById("saved-area").style.display = "none";
+      document.getElementById("page-title").textContent = "Nova Busca de Leads";
+      document.getElementById("page-subtitle").textContent = "Encontre empresas pelo Google Maps em segundos";
+
+      const badge = document.getElementById("badge-results");
+      if (allLeads.length) {
+        badge.textContent = `${allLeads.length} leads`;
+        badge.style.display = "block";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+
+    function showAllSaved() {
+      currentView = "saved";
+      currentFolder = null;
+
+      document.getElementById("search-area").style.display = "none";
+      document.getElementById("saved-area").style.display = "block";
+      document.getElementById("page-title").textContent = "Leads Salvos";
+      document.getElementById("page-subtitle").textContent = "Todos os leads salvos por comercial";
+
+      renderSavedView();
+    }
+
+    function showSavedFolder(folder) {
+      currentView = "saved";
+      currentFolder = folder;
+
+      document.getElementById("search-area").style.display = "none";
+      document.getElementById("saved-area").style.display = "block";
+      document.getElementById("page-title").textContent = folder;
+      document.getElementById("page-subtitle").textContent = `Leads salvos para ${folder}`;
+
+      renderSavedView();
+    }
+
+    function renderSavedView() {
+      const grid = document.getElementById("saved-grid");
+      const empty = document.getElementById("saved-empty-state");
+      const toolbar = document.getElementById("saved-toolbar");
+      const statusFilter = document.getElementById("saved-status-filter").value;
+
+      let items = [];
+
+      if (currentFolder) {
+        items = (savedLeads[currentFolder] || []).map(function (lead, index) {
+          return { lead, folder: currentFolder, index };
+        });
+      } else {
+        Object.keys(savedLeads).forEach(function (folder) {
+          savedLeads[folder].forEach(function (lead, index) {
+            items.push({ lead, folder, index });
+          });
+        });
+      }
+
+      if (statusFilter !== "all") {
+        items = items.filter(function (item) {
+          return item.lead.status === statusFilter;
+        });
+      }
+
+      renderDashboard();
+
+      const badge = document.getElementById("badge-results");
+      badge.textContent = `${items.length} salvos`;
+      badge.style.display = "block";
+
+      if (!items.length) {
+        grid.innerHTML = "";
+        toolbar.style.display = "block";
+        empty.style.display = "block";
+        return;
+      }
+
+      toolbar.style.display = "block";
+      empty.style.display = "none";
+
+      grid.innerHTML = items.map(function (item) {
+        return buildLeadCard(item.lead, item.index, true, item.folder);
+      }).join("");
+    }
+
+    function renderDashboard() {
+      const dashboard = document.getElementById("dashboard");
+      let leads = [];
+
+      if (currentFolder) {
+        leads = savedLeads[currentFolder] || [];
+      } else {
+        Object.keys(savedLeads).forEach(function (folder) {
+          leads = leads.concat(savedLeads[folder]);
+        });
+      }
+
+      const total = leads.length;
+      const novo = leads.filter(item => item.status === "novo").length;
+      const contato = leads.filter(item => item.status === "em_contato").length;
+      const qualificado = leads.filter(item => item.status === "qualificado").length;
+      const exportado = leads.filter(item => item.exported_to_pipedrive || item.status === "exportado").length;
+
+      dashboard.innerHTML = `
+        <div class="dash-card"><span>Total</span><strong>${total}</strong></div>
+        <div class="dash-card"><span>Novo</span><strong>${novo}</strong></div>
+        <div class="dash-card"><span>Em contato</span><strong>${contato}</strong></div>
+        <div class="dash-card"><span>Qualificado</span><strong>${qualificado}</strong></div>
+        <div class="dash-card"><span>Exportado</span><strong>${exportado}</strong></div>
+      `;
+    }
+
+    function changeLeadStatus(folder, index, status) {
+      if (!savedLeads[folder] || !savedLeads[folder][index]) return;
+
+      savedLeads[folder][index].status = status;
+      saveStorage();
+      renderSavedView();
+      showToast("Status atualizado.");
+    }
+
+    function toggleSelectAllSaved() {
+      const checked = document.getElementById("select-all-saved").checked;
+      document.querySelectorAll(".saved-checkbox").forEach(function (checkbox) {
+        checkbox.checked = checked;
+      });
+    }
+
+    function getSelectedSavedLeads() {
+      const selected = [];
+
+      document.querySelectorAll(".saved-checkbox:checked").forEach(function (checkbox) {
+        const folder = checkbox.dataset.folder;
+        const index = Number(checkbox.dataset.index);
+
+        if (savedLeads[folder] && savedLeads[folder][index]) {
+          selected.push({
+            folder,
+            index,
+            lead: savedLeads[folder][index]
+          });
+        }
+      });
+
+      return selected;
+    }
+
+    function exportCSV() {
+      if (!filteredLeads.length) {
+        showToast("Nenhum lead para exportar.", "error");
+        return;
+      }
+
+      downloadCSV(filteredLeads, "leads-busca.csv");
+    }
+
+    function exportSelectedCSV() {
+      const selected = getSelectedSavedLeads();
+
+      if (!selected.length) {
+        showToast("Selecione ao menos um lead.", "error");
+        return;
+      }
+
+      downloadCSV(selected.map(item => item.lead), "leads-selecionados.csv");
+    }
+
+    function downloadCSV(leads, filename) {
+      const headers = [
+        "Nome",
+        "Endereco",
+        "Telefone",
+        "Site",
+        "Avaliacao",
+        "Total Avaliacoes",
+        "Google Maps",
+        "Comercial",
+        "Status",
+        "Exportado Pipedrive",
+        "Place ID"
+      ];
+
+      const rows = leads.map(function (lead) {
+        return [
+          lead.name || "",
+          lead.formatted_address || "",
+          lead.formatted_phone_number || "",
+          lead.website || "",
+          lead.rating || "",
+          lead.user_ratings_total || "",
+          lead.url || googleMapsUrl(lead),
+          lead.commercial || "",
+          lead.status || "",
+          lead.exported_to_pipedrive ? "Sim" : "Nao",
+          lead.place_id || ""
+        ];
+      });
+
+      const csv = [headers, ...rows]
+        .map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(";"))
+        .join("\\n");
+
+      const blob = new Blob(["\\ufeff" + csv], {
+        type: "text/csv;charset=utf-8;"
+      });
+
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+
+      URL.revokeObjectURL(link.href);
+      showToast("CSV exportado.");
+    }
+
+    function configurePipedrive() {
+      const current = localStorage.getItem(PIPEDRIVE_KEY) || "";
+      const token = prompt("Cole o token da API do Pipedrive:", current);
+
+      if (!token || !token.trim()) {
+        showToast("Token não configurado.", "error");
+        return;
+      }
+
+      localStorage.setItem(PIPEDRIVE_KEY, token.trim());
+      showToast("Token do Pipedrive salvo.");
+    }
+
+    async function exportSelectedToPipedrive() {
+      const selected = getSelectedSavedLeads();
+
+      if (!selected.length) {
+        showToast("Selecione ao menos um lead.", "error");
+        return;
+      }
+
+      for (const item of selected) {
+        await sendLeadToPipedrive(item.folder, item.index);
+      }
+
+      renderSavedView();
+      showToast("Exportação em lote finalizada.");
+    }
+
+    async function exportOneToPipedrive(folder, index) {
+      await sendLeadToPipedrive(folder, index);
+      renderSavedView();
+    }
+
+    async function sendLeadToPipedrive(folder, index) {
+      const token = localStorage.getItem(PIPEDRIVE_KEY);
+
+      if (!token) {
+        configurePipedrive();
+        return;
+      }
+
+      const lead = savedLeads[folder] && savedLeads[folder][index];
+
+      if (!lead) return;
+
+      if (lead.exported_to_pipedrive) {
+        showToast(`${lead.name} já foi exportado.`);
+        return;
+      }
+
+      try {
+        const orgResponse = await fetch(`https://api.pipedrive.com/v1/organizations?api_token=${encodeURIComponent(token)}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name: lead.name,
+            address: lead.formatted_address || ""
+          })
+        });
+
+        const orgData = await orgResponse.json();
+
+        if (!orgData.success) {
+          throw new Error(orgData.error || "Erro ao criar organização.");
+        }
+
+        const orgId = orgData.data.id;
+
+        let personId = "";
+
+        if (lead.formatted_phone_number || lead.website) {
+          const personResponse = await fetch(`https://api.pipedrive.com/v1/persons?api_token=${encodeURIComponent(token)}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              name: lead.name,
+              org_id: orgId,
+              phone: lead.formatted_phone_number ? [{ value: lead.formatted_phone_number, primary: true }] : [],
+              email: []
+            })
+          });
+
+          const personData = await personResponse.json();
+
+          if (personData.success && personData.data) {
+            personId = personData.data.id;
+          }
+        }
+
+        const dealResponse = await fetch(`https://api.pipedrive.com/v1/deals?api_token=${encodeURIComponent(token)}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            title: `${lead.name} - Lead VL Hunt`,
+            org_id: orgId,
+            person_id: personId || undefined,
+            visible_to: "3"
+          })
+        });
+
+        const dealData = await dealResponse.json();
+
+        if (!dealData.success) {
+          throw new Error(dealData.error || "Erro ao criar negócio.");
+        }
+
+        savedLeads[folder][index].exported_to_pipedrive = true;
+        savedLeads[folder][index].pipedrive_org_id = orgId;
+        savedLeads[folder][index].pipedrive_person_id = personId || "";
+        savedLeads[folder][index].pipedrive_deal_id = dealData.data.id;
+        savedLeads[folder][index].status = "exportado";
+
+        saveStorage();
+        showToast(`${lead.name} exportado para o Pipedrive.`);
+      } catch (error) {
+        showToast(`Erro Pipedrive: ${error.message}`, "error");
+      }
+    }
+
+    function openDetailModalSearch(index) {
+      const lead = allLeads[index];
+
+      if (!lead) return;
+
+      openDetailModal(lead);
+    }
+
+    function openDetailModalSaved(folder, index) {
+      const lead = savedLeads[folder] && savedLeads[folder][index];
+
+      if (!lead) return;
+
+      openDetailModal(lead);
+    }
+
+    function openDetailModal(lead) {
+      document.getElementById("detail-title").textContent = lead.name || "Detalhes do lead";
+      document.getElementById("detail-subtitle").textContent = lead.formatted_address || "Informações completas";
+
+      const content = document.getElementById("detail-content");
+
+      content.innerHTML = `
+        <div class="detail-item">
+          <span>Nome</span>
+          <strong>${escapeHtml(lead.name || "-")}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Endereço</span>
+          <strong>${escapeHtml(lead.formatted_address || "-")}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Telefone</span>
+          <strong>${escapeHtml(lead.formatted_phone_number || lead.international_phone_number || "Sem telefone")}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Site</span>
+          ${
+            lead.website
+              ? `<a href="${escapeAttr(lead.website)}" target="_blank" rel="noopener">${escapeHtml(lead.website)}</a>`
+              : `<strong>Sem site</strong>`
+          }
+        </div>
+
+        <div class="detail-item">
+          <span>Google Maps</span>
+          <a href="${escapeAttr(lead.url || googleMapsUrl(lead))}" target="_blank" rel="noopener">Abrir no Google Maps</a>
+        </div>
+
+        <div class="detail-item">
+          <span>Avaliação</span>
+          <strong>${escapeHtml(lead.rating || "Sem avaliação")} ${lead.user_ratings_total ? `(${escapeHtml(lead.user_ratings_total)} avaliações)` : ""}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Status</span>
+          <strong>${escapeHtml(formatStatus(lead.status || "novo"))}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Comercial</span>
+          <strong>${escapeHtml(lead.commercial || findLeadSavedFolder(lead) || "Não salvo")}</strong>
+        </div>
+
+        <div class="detail-item">
+          <span>Pipedrive</span>
+          <strong>${lead.exported_to_pipedrive ? "Exportado" : "Não exportado"}</strong>
+        </div>
+      `;
+
+      document.getElementById("detail-modal").style.display = "flex";
+    }
+
+    function closeDetailModal() {
+      document.getElementById("detail-modal").style.display = "none";
+    }
+
+    function copyLead(type, folder, index) {
+      let lead = null;
+
+      if (type === "saved") {
+        lead = savedLeads[folder] && savedLeads[folder][index];
+      } else {
+        lead = allLeads[index];
+      }
+
+      if (!lead) return;
+
+      const text = [
+        `Nome: ${lead.name || ""}`,
+        `Endereço: ${lead.formatted_address || ""}`,
+        `Telefone: ${lead.formatted_phone_number || ""}`,
+        `Site: ${lead.website || ""}`,
+        `Maps: ${lead.url || googleMapsUrl(lead)}`,
+        `Status: ${formatStatus(lead.status || "novo")}`
+      ].join("\\n");
+
+      navigator.clipboard.writeText(text).then(function () {
+        showToast("Lead copiado.");
+      });
+    }
+
+    function resetSearch() {
+      allLeads = [];
+      filteredLeads = [];
+      visibleLeadCount = leadsPerPage;
+
+      document.getElementById("results-section").style.display = "none";
+      document.getElementById("loading-state").style.display = "none";
+      document.getElementById("badge-results").style.display = "none";
+      document.getElementById("load-more-wrap").style.display = "none";
+
+      document.getElementById("empty-state").style.display = "block";
+      document.getElementById("empty-state").innerHTML = `
+        <div class="state-icon">🎯</div>
+        <h2>Pronto para caçar leads?</h2>
+        <p>Digite o nicho, cidade e clique em “Extrair Leads”.</p>
+      `;
+    }
+
+    function googleMapsUrl(lead) {
+      if (lead.place_id) {
+        return `https://www.google.com/maps/place/?q=place_id:${encodeURIComponent(lead.place_id)}`;
+      }
+
+      return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((lead.name || "") + " " + (lead.formatted_address || ""))}`;
+    }
+
+    function formatStatus(status) {
+      const map = {
+        novo: "Novo",
+        em_contato: "Em contato",
+        qualificado: "Qualificado",
+        exportado: "Exportado",
+        descartado: "Descartado"
+      };
+
+      return map[status] || status;
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value).replace(/`/g, "&#096;");
+    }
+
+    function showToast(message, type = "success") {
+      const toast = document.getElementById("toast");
+
+      toast.textContent = message;
+      toast.className = type === "error" ? "toast error" : "toast";
+      toast.style.display = "block";
+
+      clearTimeout(window.toastTimer);
+
+      window.toastTimer = setTimeout(function () {
+        toast.style.display = "none";
+      }, 3200);
+    }
+
+    renderFolders();
+  </script>
+
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRd4KUJR3Rk4k98OOJVDtSfExn4ENVq0U&libraries=places&callback=initGoogle"></script>
 </body>
 </html>
