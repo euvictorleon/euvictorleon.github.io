@@ -28,8 +28,6 @@
       --muted: #6b7280;
       --muted-light: #9ca3af;
       --danger: #ef4444;
-      --warning: #f59e0b;
-      --warning-soft: #fffbeb;
       --shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
       --radius: 16px;
     }
@@ -357,7 +355,7 @@
     }
 
     .btn-outline:disabled {
-      opacity: 0.55;
+      opacity: 0.6;
       cursor: not-allowed;
     }
 
@@ -513,9 +511,9 @@
       color: var(--green-dark);
     }
 
-    .pill-locked {
-      background: var(--warning-soft);
-      color: #92400e;
+    .pill-blocked {
+      background: #fee2e2;
+      color: #991b1b;
     }
 
     .lead-actions {
@@ -539,11 +537,8 @@
     }
 
     .btn-save:disabled {
-      opacity: 0.75;
+      opacity: 0.7;
       cursor: not-allowed;
-      border-color: #fde68a;
-      background: var(--warning-soft);
-      color: #92400e;
     }
 
     .btn-map {
@@ -729,7 +724,7 @@
       <header class="topbar">
         <div>
           <h1 id="page-title">Nova Busca de Leads</h1>
-          <p id="page-subtitle">Pesquise por nicho ou pelo nome do estabelecimento</p>
+          <p id="page-subtitle">Encontre empresas pelo Google Maps em segundos</p>
         </div>
 
         <div class="badge" id="badge-results"></div>
@@ -743,11 +738,11 @@
             <div class="search-grid">
               <div class="field">
                 <label for="input-nicho">Nicho ou nome do estabelecimento</label>
-                <input id="input-nicho" type="text" placeholder="Ex: restaurante, Clínica São Lucas, Padaria Pão Bom" value="restaurante">
+                <input id="input-nicho" type="text" placeholder="Ex: restaurante, clínica odontológica, Padaria Vitória" value="restaurante">
               </div>
 
               <div class="field">
-                <label for="input-cidade">Cidade opcional</label>
+                <label for="input-cidade">Cidade</label>
                 <input id="input-cidade" type="text" placeholder="Ex: Maringá" value="Maringá">
               </div>
 
@@ -765,7 +760,7 @@
           <div class="state-card" id="empty-state">
             <div class="state-icon">🎯</div>
             <h2>Pronto para caçar leads?</h2>
-            <p>Digite o nicho, nome do estabelecimento, cidade e clique em “Extrair Leads”.</p>
+            <p>Digite o nicho ou nome do estabelecimento, cidade e clique em “Extrair Leads”.</p>
           </div>
 
           <div class="state-card loading" id="loading-state">
@@ -779,7 +774,7 @@
               <h2 id="results-title">0 leads encontrados</h2>
 
               <div class="actions">
-                <button class="btn-outline" id="btn-load-more" onclick="loadMoreResults()" style="display:none;">➕ Carregar mais</button>
+                <button class="btn-outline" id="btn-load-more" onclick="loadMoreLeads()" style="display:none;">➕ Carregar mais</button>
                 <button class="btn-outline" onclick="exportCSV()">📥 Exportar CSV</button>
                 <button class="btn-outline" onclick="resetSearch()">🔄 Nova Busca</button>
               </div>
@@ -828,14 +823,12 @@
     let googleReady = false;
 
     let allLeads = [];
-    let leadIds = new Set();
-
     let currentLeadIndex = null;
     let currentFolder = null;
+
     let currentPagination = null;
-    let isSearching = false;
-    let isLoadingMore = false;
-    let lastQuery = "";
+    let canLoadMore = false;
+    let knownLeadKeys = new Set();
 
     let folders = JSON.parse(localStorage.getItem("vl_folders") || '["Geral"]');
     let savedLeads = JSON.parse(localStorage.getItem("vl_leads") || "{}");
@@ -866,24 +859,29 @@
         return;
       }
 
-      const queryParts = [nicho, bairro, cidade].filter(Boolean);
-      const query = queryParts.join(" ");
+      if (!cidade) {
+        showToast("Informe a cidade.", "error");
+        return;
+      }
 
-      lastQuery = query;
+      const query = bairro ? `${nicho} ${bairro} ${cidade}` : `${nicho} ${cidade}`;
+
       allLeads = [];
-      leadIds = new Set();
+      knownLeadKeys = new Set();
       currentPagination = null;
-      isSearching = true;
-      isLoadingMore = false;
+      canLoadMore = false;
 
       document.getElementById("empty-state").style.display = "none";
       document.getElementById("results-section").style.display = "none";
       document.getElementById("loading-state").style.display = "block";
       document.getElementById("btn-search").disabled = true;
       document.getElementById("badge-results").style.display = "none";
-      document.getElementById("btn-load-more").style.display = "none";
-      document.getElementById("btn-load-more").disabled = false;
-      document.getElementById("btn-load-more").textContent = "➕ Carregar mais";
+
+      const loadMoreButton = document.getElementById("btn-load-more");
+      if (loadMoreButton) {
+        loadMoreButton.style.display = "none";
+        loadMoreButton.disabled = true;
+      }
 
       document.getElementById("loading-title").textContent = "Buscando leads...";
       document.getElementById("loading-subtitle").textContent = `Pesquisa: ${query}`;
@@ -894,90 +892,71 @@
           language: "pt-BR",
           region: "br"
         },
-        handleTextSearchResults
+        function (results, status, pagination) {
+          handleTextSearchResults(results, status, pagination, false);
+        }
       );
     }
 
-    function handleTextSearchResults(results, status, pagination) {
-      if (!isSearching) return;
-
+    function handleTextSearchResults(results, status, pagination, appendMode) {
       if (status !== google.maps.places.PlacesServiceStatus.OK || !results || !results.length) {
+        document.getElementById("loading-state").style.display = "none";
+        document.getElementById("btn-search").disabled = false;
+
         if (!allLeads.length) {
+          document.getElementById("empty-state").style.display = "block";
+          document.getElementById("empty-state").innerHTML = `
+            <div class="state-icon">🔎</div>
+            <h2>Nenhum lead encontrado</h2>
+            <p>Tente mudar o nicho, nome, cidade ou remover o bairro.</p>
+          `;
+        } else {
           finishSearch();
-          return;
         }
 
-        showToast("Nenhum resultado novo encontrado.", "error");
+        if (status && status !== google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+          showToast(`Google Places retornou: ${status}`, "error");
+        }
+
+        return;
+      }
+
+      currentPagination = pagination || null;
+      canLoadMore = false;
+
+      const newLeads = [];
+
+      results.forEach(function (place) {
+        const lead = normalizeLead(place);
+        const key = getLeadKey(lead);
+
+        if (!knownLeadKeys.has(key)) {
+          knownLeadKeys.add(key);
+          newLeads.push(lead);
+        }
+      });
+
+      if (!newLeads.length) {
         finishSearch();
         return;
       }
 
       const startIndex = allLeads.length;
-      const addedCount = addUniqueResults(results);
-
-      currentPagination = pagination && pagination.hasNextPage ? pagination : null;
-
-      document.getElementById("loading-title").textContent = `Buscando leads... ${allLeads.length} encontrados`;
-      document.getElementById("loading-subtitle").textContent = addedCount
-        ? `Coletando detalhes de ${addedCount} novo(s) lead(s).`
-        : "Resultados duplicados ignorados.";
-
-      if (addedCount > 0) {
-        loadLeadDetails(startIndex, function () {
-          finishSearch();
-        });
-      } else {
-        finishSearch();
-      }
-    }
-
-    function loadMoreResults() {
-      if (!currentPagination || !currentPagination.hasNextPage) {
-        showToast("Não há mais páginas disponíveis para essa busca.", "error");
-        updateLoadMoreButton();
-        return;
-      }
-
-      if (isLoadingMore) return;
-
-      isLoadingMore = true;
-      isSearching = true;
-
-      const btn = document.getElementById("btn-load-more");
-      btn.disabled = true;
-      btn.textContent = "⏳ Carregando...";
+      allLeads.push(...newLeads);
+      const endIndex = allLeads.length;
 
       document.getElementById("loading-state").style.display = "block";
-      document.getElementById("loading-title").textContent = "Carregando mais leads...";
-      document.getElementById("loading-subtitle").textContent = "Buscando próxima página do Google Maps.";
+      document.getElementById("loading-title").textContent = appendMode ? "Carregando mais leads..." : "Buscando leads...";
+      document.getElementById("loading-subtitle").textContent = `${allLeads.length} leads encontrados até agora.`;
 
-      setTimeout(function () {
-        currentPagination.nextPage();
-      }, 2200);
-    }
-
-    function addUniqueResults(results) {
-      let added = 0;
-
-      results.forEach(function (place) {
-        const lead = normalizeLead(place);
-        const uniqueId = getLeadUniqueId(lead);
-
-        if (!leadIds.has(uniqueId)) {
-          leadIds.add(uniqueId);
-          allLeads.push(lead);
-          added++;
-        }
-      });
-
-      return added;
+      loadLeadDetails(startIndex, endIndex);
     }
 
     function normalizeLead(place) {
       return {
         place_id: place.place_id || "",
         name: place.name || "Nome não disponível",
-        formatted_address: place.formatted_address || place.vicinity || "Endereço não disponível",
+        formatted_address: place.formatted_address || "Endereço não disponível",
         rating: place.rating || "",
         user_ratings_total: place.user_ratings_total || "",
         formatted_phone_number: "",
@@ -1001,21 +980,20 @@
       return "";
     }
 
-    function loadLeadDetails(startIndex, callback) {
-      if (!allLeads.length || startIndex >= allLeads.length) {
-        callback();
+    function loadLeadDetails(startIndex, endIndex) {
+      if (!allLeads.length || startIndex >= endIndex) {
+        finishSearch();
         return;
       }
-
-      const endIndex = allLeads.length;
-      let index = startIndex;
 
       document.getElementById("loading-title").textContent = "Coletando detalhes...";
       document.getElementById("loading-subtitle").textContent = "Buscando telefone e site quando disponíveis.";
 
+      let index = startIndex;
+
       function next() {
         if (index >= endIndex) {
-          callback();
+          finishSearch();
           return;
         }
 
@@ -1045,7 +1023,7 @@
           },
           function (details, status) {
             if (status === google.maps.places.PlacesServiceStatus.OK && details) {
-              const updatedLead = {
+              allLeads[index] = {
                 place_id: details.place_id || lead.place_id,
                 name: details.name || lead.name,
                 formatted_address: details.formatted_address || lead.formatted_address,
@@ -1055,11 +1033,6 @@
                 website: details.website || "",
                 photo_url: getPhotoUrl(details) || lead.photo_url || ""
               };
-
-              allLeads[index] = updatedLead;
-
-              const newUniqueId = getLeadUniqueId(updatedLead);
-              leadIds.add(newUniqueId);
             }
 
             index++;
@@ -1076,20 +1049,13 @@
       document.getElementById("loading-state").style.display = "none";
       document.getElementById("btn-search").disabled = false;
 
-      isLoadingMore = false;
-
-      const btnLoadMore = document.getElementById("btn-load-more");
-      btnLoadMore.disabled = false;
-      btnLoadMore.textContent = "➕ Carregar mais";
-
       if (!allLeads.length) {
         document.getElementById("empty-state").style.display = "block";
         document.getElementById("empty-state").innerHTML = `
           <div class="state-icon">🔎</div>
           <h2>Nenhum lead encontrado</h2>
-          <p>Tente mudar o termo pesquisado, cidade ou bairro.</p>
+          <p>Tente mudar o nicho, nome, cidade ou remover o bairro.</p>
         `;
-        updateLoadMoreButton();
         return;
       }
 
@@ -1100,19 +1066,56 @@
       document.getElementById("results-title").textContent = `${allLeads.length} leads encontrados`;
       document.getElementById("results-section").style.display = "block";
 
-      updateLoadMoreButton();
       renderLeads();
-      renderFolders();
+      updateLoadMoreButton();
     }
 
     function updateLoadMoreButton() {
-      const btn = document.getElementById("btn-load-more");
+      const button = document.getElementById("btn-load-more");
+      if (!button) return;
 
       if (currentPagination && currentPagination.hasNextPage) {
-        btn.style.display = "inline-flex";
+        button.style.display = "inline-flex";
+        button.disabled = true;
+        button.textContent = "⏳ Aguarde...";
+
+        setTimeout(function () {
+          if (currentPagination && currentPagination.hasNextPage) {
+            canLoadMore = true;
+            button.disabled = false;
+            button.textContent = "➕ Carregar mais";
+          }
+        }, 2300);
       } else {
-        btn.style.display = "none";
+        canLoadMore = false;
+        button.style.display = "none";
       }
+    }
+
+    function loadMoreLeads() {
+      if (!currentPagination || !currentPagination.hasNextPage) {
+        showToast("Não há mais leads para carregar.", "error");
+        return;
+      }
+
+      if (!canLoadMore) {
+        showToast("Aguarde alguns segundos antes de carregar mais.", "error");
+        return;
+      }
+
+      canLoadMore = false;
+
+      const button = document.getElementById("btn-load-more");
+      if (button) {
+        button.disabled = true;
+        button.textContent = "⏳ Carregando...";
+      }
+
+      document.getElementById("loading-state").style.display = "block";
+      document.getElementById("loading-title").textContent = "Carregando mais leads...";
+      document.getElementById("loading-subtitle").textContent = "Consultando próxima página do Google Maps.";
+
+      currentPagination.nextPage();
     }
 
     function renderLeads() {
@@ -1130,7 +1133,9 @@
       const rating = lead.rating || "";
       const totalRatings = lead.user_ratings_total || "";
       const placeId = lead.place_id || "";
+
       const savedFolder = findSavedLeadFolder(lead);
+      const isAlreadySaved = !!savedFolder;
 
       const photoHtml = lead.photo_url
         ? `<img class="photo" src="${escapeAttr(lead.photo_url)}" alt="${name}" onerror="this.outerHTML='<div class=&quot;photo&quot;>🏢</div>'">`
@@ -1148,8 +1153,8 @@
         ? `<a class="pill pill-site" href="${escapeAttr(website)}" target="_blank" rel="noopener">🌐 Site</a>`
         : `<span class="pill">🌐 Sem site</span>`;
 
-      const lockedHtml = savedFolder && !isSavedView
-        ? `<span class="pill pill-locked">🔒 Já salvo: ${escapeHtml(savedFolder)}</span>`
+      const savedHtml = isAlreadySaved && !isSavedView
+        ? `<span class="pill pill-blocked">🔒 Já salvo em ${escapeHtml(savedFolder)}</span>`
         : "";
 
       const mapsUrl = placeId
@@ -1160,8 +1165,8 @@
 
       if (isSavedView) {
         saveButton = `<button class="btn-save" disabled>✅ Salvo</button>`;
-      } else if (savedFolder) {
-        saveButton = `<button class="btn-save" disabled>🔒 Já salvo</button>`;
+      } else if (isAlreadySaved) {
+        saveButton = `<button class="btn-save" disabled style="background:#fee2e2;color:#991b1b;border-color:#fecaca;">🔒 Bloqueado</button>`;
       } else {
         saveButton = `<button class="btn-save" onclick="openModal(${index})">💾 Salvar</button>`;
       }
@@ -1178,7 +1183,7 @@
               ${ratingHtml}
               ${phoneHtml}
               ${siteHtml}
-              ${lockedHtml}
+              ${savedHtml}
             </div>
           </div>
 
@@ -1192,23 +1197,25 @@
 
     function resetSearch() {
       allLeads = [];
-      leadIds = new Set();
+      knownLeadKeys = new Set();
       currentPagination = null;
-      isSearching = false;
-      isLoadingMore = false;
+      canLoadMore = false;
 
       document.getElementById("results-section").style.display = "none";
       document.getElementById("loading-state").style.display = "none";
       document.getElementById("badge-results").style.display = "none";
-      document.getElementById("btn-load-more").style.display = "none";
-      document.getElementById("btn-load-more").disabled = false;
-      document.getElementById("btn-load-more").textContent = "➕ Carregar mais";
+
+      const button = document.getElementById("btn-load-more");
+      if (button) {
+        button.style.display = "none";
+        button.disabled = true;
+      }
 
       document.getElementById("empty-state").style.display = "block";
       document.getElementById("empty-state").innerHTML = `
         <div class="state-icon">🎯</div>
         <h2>Pronto para caçar leads?</h2>
-        <p>Digite o nicho, nome do estabelecimento, cidade e clique em “Extrair Leads”.</p>
+        <p>Digite o nicho ou nome do estabelecimento, cidade e clique em “Extrair Leads”.</p>
       `;
     }
 
@@ -1223,7 +1230,7 @@
 
       document.getElementById("page-title").textContent = isSearch ? "Nova Busca de Leads" : "Leads Salvos";
       document.getElementById("page-subtitle").textContent = isSearch
-        ? "Pesquise por nicho ou pelo nome do estabelecimento"
+        ? "Encontre empresas pelo Google Maps em segundos"
         : "Gerencie seus leads por comercial";
 
       if (!isSearch) {
@@ -1261,7 +1268,7 @@
       const folderName = name.trim();
 
       if (folders.includes(folderName)) {
-        showToast("Esse comercial já existe.", "error");
+        showToast("Essa pasta já existe.", "error");
         return;
       }
 
@@ -1269,7 +1276,7 @@
       localStorage.setItem("vl_folders", JSON.stringify(folders));
 
       renderFolders();
-      showToast("Comercial criado com sucesso.");
+      showToast("Pasta criada com sucesso.");
     }
 
     function renderSaved() {
@@ -1310,8 +1317,7 @@
       const savedFolder = findSavedLeadFolder(lead);
 
       if (savedFolder) {
-        showToast(`Esse lead já está salvo para ${savedFolder}.`, "error");
-        currentLeadIndex = null;
+        showToast(`Esse lead já está salvo em ${savedFolder}.`, "error");
         renderLeads();
         return;
       }
@@ -1340,7 +1346,7 @@
       const savedFolder = findSavedLeadFolder(lead);
 
       if (savedFolder) {
-        showToast(`Bloqueado: esse lead já está salvo para ${savedFolder}.`, "error");
+        showToast(`Esse lead já está salvo em ${savedFolder}.`, "error");
         closeModal();
         renderLeads();
         return;
@@ -1356,17 +1362,17 @@
       closeModal();
       renderFolders();
       renderLeads();
-      showToast(`Lead salvo para ${folder}.`);
+      showToast(`Lead salvo em ${folder}.`);
     }
 
     function findSavedLeadFolder(lead) {
-      const leadId = getLeadUniqueId(lead);
+      const leadKey = getLeadKey(lead);
 
-      for (const folder in savedLeads) {
-        const leads = savedLeads[folder] || [];
+      for (const folder of folders) {
+        const list = savedLeads[folder] || [];
 
-        const exists = leads.some(function (item) {
-          return getLeadUniqueId(item) === leadId;
+        const exists = list.some(function (item) {
+          return getLeadKey(item) === leadKey;
         });
 
         if (exists) {
@@ -1377,19 +1383,22 @@
       return null;
     }
 
-    function getLeadUniqueId(lead) {
-      if (lead && lead.place_id) {
+    function getLeadKey(lead) {
+      if (lead.place_id) {
         return `place:${lead.place_id}`;
       }
 
-      return `fallback:${normalizeText((lead.name || "") + "|" + (lead.formatted_address || ""))}`;
+      const name = normalizeText(lead.name || "");
+      const address = normalizeText(lead.formatted_address || "");
+
+      return `fallback:${name}|${address}`;
     }
 
     function normalizeText(value) {
-      return String(value || "")
+      return String(value)
+        .toLowerCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
         .replace(/\s+/g, " ")
         .trim();
     }
@@ -1417,7 +1426,7 @@
 
     function downloadCSV(leads, filename) {
       const rows = [
-        ["Nome", "Endereço", "Telefone", "Avaliação", "Total de Avaliações", "Site", "Google Maps", "Comercial"]
+        ["Nome", "Endereço", "Telefone", "Avaliação", "Total de Avaliações", "Site", "Google Maps"]
       ];
 
       leads.forEach(function (lead) {
@@ -1432,8 +1441,7 @@
           lead.rating || "",
           lead.user_ratings_total || "",
           lead.website || "",
-          mapsUrl,
-          findSavedLeadFolder(lead) || ""
+          mapsUrl
         ]);
       });
 
