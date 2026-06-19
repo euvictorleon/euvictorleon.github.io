@@ -1046,7 +1046,7 @@
 
       window.__toastTimer = setTimeout(() => {
         el.style.display = 'none';
-      }, 3500);
+      }, 4000); // tempo estendido para leitura
     }
 
     function loadLocalData() {
@@ -1073,11 +1073,9 @@
 
     function fillSettingsFields() {
       const settings = getSettings();
-
       document.getElementById('googleApiKeyInput').value = settings.googleApiKey || '';
       document.getElementById('pipedriveTokenInput').value = settings.pipedriveToken || '';
       document.getElementById('commercialInput').value = settings.commercial || 'Victor';
-
       document.getElementById('topUserName').textContent = settings.commercial || 'Victor';
     }
 
@@ -1089,9 +1087,7 @@
       };
 
       localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
-
       document.getElementById('topUserName').textContent = settings.commercial;
-
       toast('Configurações salvas.');
 
       if (settings.googleApiKey) {
@@ -1101,7 +1097,6 @@
 
     function clearSettings() {
       if (!confirm('Deseja limpar as configurações?')) return;
-
       localStorage.removeItem(STORAGE_KEYS.settings);
       fillSettingsFields();
       toast('Configurações limpas.');
@@ -1109,12 +1104,10 @@
 
     function reloadGoogleMapsScript() {
       const settings = getSettings();
-
       if (!settings.googleApiKey) {
         toast('Informe e salve a API Key do Google Maps primeiro.');
         return;
       }
-
       loadGoogleMapsScript(settings.googleApiKey, true);
     }
 
@@ -1123,39 +1116,24 @@
         initGoogleMaps();
         return;
       }
-
       const oldScript = document.getElementById('googleMapsScript');
+      if (oldScript) oldScript.remove();
 
-      if (oldScript) {
-        oldScript.remove();
-      }
-
-      window.initVLHuntGoogleMaps = function () {
-        initGoogleMaps();
-      };
+      window.initVLHuntGoogleMaps = function () { initGoogleMaps(); };
 
       const script = document.createElement('script');
       script.id = 'googleMapsScript';
       script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&libraries=places&callback=initVLHuntGoogleMaps`;
       script.async = true;
       script.defer = true;
-      script.onerror = function () {
-        toast('Erro ao carregar Google Maps. Verifique sua API Key.');
-      };
-
+      script.onerror = function () { toast('Erro ao carregar Google Maps. Verifique sua API Key.'); };
       document.body.appendChild(script);
     }
 
     function initGoogleMaps() {
       const mapEl = document.getElementById('map');
-
-      map = new google.maps.Map(mapEl, {
-        center: { lat: -23.4205, lng: -51.9333 },
-        zoom: 13
-      });
-
+      map = new google.maps.Map(mapEl, { center: { lat: -23.4205, lng: -51.9333 }, zoom: 13 });
       placesService = new google.maps.places.PlacesService(map);
-
       toast('Google Maps carregado e pronto.');
     }
 
@@ -1164,7 +1142,6 @@
       const salvos = savedLeads.length;
       const exportados = exportedLeads.length;
       const pendentes = encontrados - salvos;
-      
       const pendentesFinal = pendentes >= 0 ? pendentes : 0;
 
       document.getElementById('foundCount').textContent = encontrados;
@@ -1184,7 +1161,6 @@
       }
 
       const settings = getSettings();
-
       if (!settings.googleApiKey) {
         toast('Configure a API Key do Google Maps primeiro.');
         showSection('settings');
@@ -1192,7 +1168,6 @@
       }
 
       if (!placesService) {
-        loadGoogleMapsScript(settings.googleApiKey);
         toast('Google Maps estava carregando. Aguarde alguns segundos e tente novamente.');
         return;
       }
@@ -1201,11 +1176,9 @@
       localStorage.setItem('vlhunt_last_city', city);
       localStorage.setItem('vlhunt_last_district', district);
 
-      const query = district
-        ? `${niche} em ${district}, ${city}`
-        : `${niche} em ${city}`;
+      const query = district ? `${niche} em ${district}, ${city}` : `${niche} em ${city}`;
 
-      // Reset total
+      // Reset
       detailsQueue = [];
       isProcessingQueue = false;
       nextTokenReady = false;
@@ -1221,30 +1194,54 @@
 
       renderLeads();
 
-      const request = {
-        query: query,
-        type: 'establishment'
-      };
-
-      placesService.textSearch(request, (results, status, pagination) => {
+      placesService.textSearch({ query: query, type: 'establishment' }, (results, status, pagination) => {
         document.getElementById('searchBtn').disabled = false;
         document.getElementById('searchBtn').textContent = 'Extrair Leads';
-
         handlePlacesResults(results, status, pagination, false);
       });
     }
 
     function handlePlacesResults(results, status, pagination, append) {
+      
+      // AUTO-RETENTATIVA 1: O Google pediu para você ir mais devagar
+      if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
+         toast('Google pediu um respiro. Tentando novamente sozinho em 2s...');
+         setTimeout(() => {
+            if (placesPagination && placesPagination.hasNextPage) {
+               placesPagination.nextPage();
+            } else if (!isLoadingMore) {
+               document.getElementById('searchBtn').click(); // refaz a busca 1
+            }
+         }, 2000);
+         return; // Interrompe para não cancelar a busca!
+      }
+
+      // AUTO-RETENTATIVA 2: O Token de Próxima Página do Google ainda não validou no servidor deles
+      if (status === google.maps.places.PlacesServiceStatus.INVALID_REQUEST && isLoadingMore) {
+         toast('Sincronizando com os servidores do Google... aguarde.');
+         setTimeout(() => {
+            if (placesPagination && placesPagination.hasNextPage) {
+               placesPagination.nextPage();
+            }
+         }, 2000);
+         return; // Interrompe para não cancelar a busca!
+      }
+
+      // TRATAMENTO DE ERROS REAIS E FIM DE RESULTADOS
       if (status !== google.maps.places.PlacesServiceStatus.OK || !results || !results.length) {
         if (!append && !isLoadingMore) {
           leads = [];
           renderLeads();
         }
 
-        if (leads.length >= 60) {
-            toast('Limite do Google atingido (60 resultados por pesquisa). Busque por um BAIRRO específico para achar mais leads nessa cidade!');
+        if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
+           if (leads.length > 0) {
+              toast('Não há mais páginas de resultados para esta região.');
+           } else {
+              toast('Nenhuma empresa encontrada com estes termos.');
+           }
         } else {
-            toast('Fim dos resultados encontrados para esta pesquisa.');
+            toast('Erro do Google ou limite atingido: ' + status);
         }
 
         isLoadingMore = false;
@@ -1253,17 +1250,16 @@
         return;
       }
 
+      // SUCESSO - Adicionando Leads
       results.forEach(place => {
         const normalized = normalizePlace(place);
-
         if (!leads.some(lead => lead.place_id === normalized.place_id)) {
           leads.push(normalized);
-          // Puxa os dados com a fila anti-bloqueio
           fetchPlaceDetailsQueue(normalized.place_id);
         }
       });
 
-      // LÓGICA CORRIGIDA: Google exige 2 a 3 segundos de espera antes de liberar a Próxima página
+      // LÓGICA DE PAGINAÇÃO
       placesPagination = pagination && pagination.hasNextPage ? pagination : null;
       clearTimeout(nextTokenTimer);
       
@@ -1271,8 +1267,8 @@
         nextTokenReady = false;
         nextTokenTimer = setTimeout(() => {
           nextTokenReady = true;
-          renderPaginationControls(leads.length); // Habilita o botão "Próxima"
-        }, 2500); // Exatos 2.5s para o Google gerar o token validado
+          renderPaginationControls(leads.length);
+        }, 3000); // 3 Segundos exatos para garantir que o Google liberou o Token!
       } else {
         nextTokenReady = true;
       }
@@ -1306,16 +1302,15 @@
 
     function loadMoreLeadsForPagination() {
       if (!placesPagination || !placesPagination.hasNextPage) return;
-      if (isLoadingMore || !nextTokenReady) return; // Segurança contra bloqueio do Google
+      if (isLoadingMore || !nextTokenReady) return;
 
       isLoadingMore = true;
-      renderPaginationControls(leads.length); // Mostra que tá carregando
+      renderPaginationControls(leads.length); 
 
       try {
         placesPagination.nextPage();
       } catch (error) {
         console.error(error);
-        toast('Erro ao se comunicar com o Google.');
         isLoadingMore = false;
         renderPaginationControls(leads.length);
       }
@@ -1333,7 +1328,6 @@
       const totalPages = Math.ceil(totalLeads / leadsPerPage);
       const hasMoreFromApi = placesPagination && placesPagination.hasNextPage;
 
-      // Desabilita o botão Próxima se estiver carregando ou se o Google ainda não liberou o tempo (2.5s)
       const isNextDisabled = (!hasMoreFromApi && currentPage >= totalPages) || isLoadingMore || (hasMoreFromApi && currentPage >= totalPages && !nextTokenReady);
       const isPrevDisabled = currentPage === 1 || isLoadingMore;
 
@@ -1357,7 +1351,6 @@
       const photoUrl = place.photos && place.photos.length
         ? place.photos[0].getUrl({ maxWidth: 900, maxHeight: 360 })
         : '';
-
       return {
         place_id: place.place_id,
         name: place.name || '',
@@ -1376,7 +1369,9 @@
     }
 
     function fetchPlaceDetailsQueue(placeId) {
-      detailsQueue.push(placeId);
+      if (!detailsQueue.includes(placeId)) {
+         detailsQueue.push(placeId);
+      }
       processQueue();
     }
 
@@ -1394,16 +1389,21 @@
       placesService.getDetails(
         {
           placeId: placeId,
-          fields: [
-            'name', 'formatted_address', 'formatted_phone_number', 
-            'international_phone_number', 'website', 'url', 'rating', 
-            'user_ratings_total', 'photos'
-          ]
+          fields: ['name', 'formatted_address', 'formatted_phone_number', 'international_phone_number', 'website', 'url', 'rating', 'user_ratings_total', 'photos']
         },
         (place, status) => {
+          // SE O GOOGLE BARRAR A FILA, ELA ESPERA E TENTA DE NOVO SOZINHA!
+          if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
+             detailsQueue.unshift(placeId); // Devolve o lead pra fila
+             setTimeout(() => {
+                isProcessingQueue = false;
+                processQueue();
+             }, 2000); // Espera 2 segundinhos e continua
+             return;
+          }
+
           if (status === google.maps.places.PlacesServiceStatus.OK && place) {
             const index = leads.findIndex(lead => lead.place_id === placeId);
-
             if (index !== -1) {
               leads[index] = {
                 ...leads[index],
@@ -1427,10 +1427,11 @@
             }
           }
 
+          // Aumentei pra 500ms para a API do Google respirar melhor
           setTimeout(() => {
             isProcessingQueue = false;
             processQueue();
-          }, 350);
+          }, 500);
         }
       );
     }
@@ -1555,7 +1556,6 @@
       } else {
         selectedLeadIds.delete(placeId);
       }
-
       renderLeads();
     }
 
@@ -1564,12 +1564,10 @@
         const startIndex = (currentPage - 1) * leadsPerPage;
         const endIndex = startIndex + leadsPerPage;
         const leadsToDisplay = leads.slice(startIndex, endIndex);
-
         leadsToDisplay.forEach(lead => selectedLeadIds.add(lead.place_id));
       } else {
         selectedLeadIds.clear();
       }
-
       renderLeads();
     }
 
@@ -1586,30 +1584,24 @@
 
     function saveSelectedLeads() {
       const selected = getSelectedLeads();
-
       if (!selected.length) {
         toast('Selecione pelo menos um lead.');
         return;
       }
-
       selected.forEach(lead => saveLead(lead, false));
-
       persistSavedLeads();
       renderSavedLeads();
       updateCounters();
-
       toast(`${selected.length} leads salvos.`);
     }
 
     function saveLeadById(placeId) {
       const lead = leads.find(item => item.place_id === placeId) ||
         savedLeads.find(item => item.place_id === placeId);
-
       if (!lead) {
         toast('Lead não encontrado.');
         return;
       }
-
       saveLead(lead, true);
     }
 
@@ -1618,15 +1610,12 @@
         if (showMessage) toast('Este lead já está salvo.');
         return;
       }
-
       savedLeads.push({
         ...lead,
         savedAt: new Date().toISOString()
       });
-
       persistSavedLeads();
       updateCounters();
-
       if (showMessage) toast('Lead salvo.');
     }
 
@@ -1637,27 +1626,21 @@
     function renderSavedLeads() {
       const grid = document.getElementById('savedGrid');
       const empty = document.getElementById('savedEmpty');
-
       grid.innerHTML = '';
-
       if (!savedLeads.length) {
         empty.classList.remove('hidden');
         updateCounters();
         return;
       }
-
       empty.classList.add('hidden');
-
       savedLeads.forEach(lead => {
         grid.appendChild(createLeadCard(lead, 'saved'));
       });
-
       updateCounters();
     }
 
     function clearSavedLeads() {
       if (!confirm('Deseja apagar todos os leads salvos?')) return;
-
       savedLeads = [];
       persistSavedLeads();
       renderSavedLeads();
@@ -1667,21 +1650,13 @@
 
     function changeLeadStatus(placeId, status) {
       leads = leads.map(lead => {
-        if (lead.place_id === placeId) {
-          return { ...lead, status };
-        }
-
+        if (lead.place_id === placeId) return { ...lead, status };
         return lead;
       });
-
       savedLeads = savedLeads.map(lead => {
-        if (lead.place_id === placeId) {
-          return { ...lead, status };
-        }
-
+        if (lead.place_id === placeId) return { ...lead, status };
         return lead;
       });
-
       persistSavedLeads();
       renderLeads();
       renderSavedLeads();
@@ -1689,24 +1664,20 @@
 
     async function sendSelectedToPipedrive() {
       const selected = getSelectedLeads();
-
       if (!selected.length) {
         toast('Selecione pelo menos um lead.');
         return;
       }
-
       await sendLeadsToPipedrive(selected);
     }
 
     async function sendLeadByIdToPipedrive(placeId) {
       const lead = leads.find(item => item.place_id === placeId) ||
         savedLeads.find(item => item.place_id === placeId);
-
       if (!lead) {
         toast('Lead não encontrado.');
         return;
       }
-
       await sendLeadsToPipedrive([lead]);
     }
 
@@ -1715,22 +1686,18 @@
         toast('Nenhum lead na tela para exportar.');
         return;
       }
-
       await sendLeadsToPipedrive(leads);
     }
 
     async function sendLeadsToPipedrive(list) {
       const settings = getSettings();
-
       if (!settings.pipedriveToken) {
         toast('Configure o token do Pipedrive primeiro.');
         showSection('settings');
         return;
       }
-
       let success = 0;
       let failed = 0;
-
       toast(`Enviando ${list.length} lead(s) para o Pipedrive...`);
 
       for (const lead of list) {
@@ -1743,7 +1710,6 @@
           failed++;
         }
       }
-
       persistExportedLeads();
       persistSavedLeads();
       renderLeads();
@@ -1760,47 +1726,30 @@
 
     async function sendOneLeadToPipedrive(lead, settings) {
       const token = encodeURIComponent(settings.pipedriveToken);
-
-      const orgPayload = {
-        name: lead.name,
-        address: lead.address || undefined
-      };
-
+      const orgPayload = { name: lead.name, address: lead.address || undefined };
+      
       const orgResponse = await fetch(`https://api.pipedrive.com/v1/organizations?api_token=${token}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orgPayload)
       });
-
       const orgData = await orgResponse.json();
-
-      if (!orgResponse.ok || !orgData.success) {
-        throw new Error('Erro ao criar organização no Pipedrive');
-      }
+      if (!orgResponse.ok || !orgData.success) throw new Error('Erro ao criar organização');
 
       const orgId = orgData.data.id;
-
       const dealPayload = {
         title: `${lead.name} - ${settings.commercial || 'Comercial'}`,
         org_id: orgId,
         status: 'open'
       };
-
+      
       const dealResponse = await fetch(`https://api.pipedrive.com/v1/deals?api_token=${token}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dealPayload)
       });
-
       const dealData = await dealResponse.json();
-
-      if (!dealResponse.ok || !dealData.success) {
-        throw new Error('Erro ao criar negócio no Pipedrive');
-      }
+      if (!dealResponse.ok || !dealData.success) throw new Error('Erro ao criar negócio');
 
       const noteContent = `
 Empresa: ${lead.name}
@@ -1814,9 +1763,7 @@ Comercial: ${settings.commercial || ''}
 
       await fetch(`https://api.pipedrive.com/v1/notes?api_token=${token}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           content: noteContent,
           deal_id: dealData.data.id,
@@ -1831,32 +1778,19 @@ Comercial: ${settings.commercial || ''}
         exported: true,
         exportedAt: new Date().toISOString()
       };
-
       if (!exportedLeads.some(item => item.place_id === lead.place_id)) {
         exportedLeads.push(exportedRecord);
       }
-
       leads = leads.map(item => {
         if (item.place_id === lead.place_id) {
-          return {
-            ...item,
-            exported: true,
-            exportedAt: exportedRecord.exportedAt
-          };
+          return { ...item, exported: true, exportedAt: exportedRecord.exportedAt };
         }
-
         return item;
       });
-
       savedLeads = savedLeads.map(item => {
         if (item.place_id === lead.place_id) {
-          return {
-            ...item,
-            exported: true,
-            exportedAt: exportedRecord.exportedAt
-          };
+          return { ...item, exported: true, exportedAt: exportedRecord.exportedAt };
         }
-
         return item;
       });
     }
@@ -1869,22 +1803,17 @@ Comercial: ${settings.commercial || ''}
       const empty = document.getElementById('exportedEmpty');
       const wrap = document.getElementById('exportedTableWrap');
       const tbody = document.getElementById('exportedTableBody');
-
       tbody.innerHTML = '';
-
       if (!exportedLeads.length) {
         empty.classList.remove('hidden');
         wrap.classList.add('hidden');
         updateCounters();
         return;
       }
-
       empty.classList.add('hidden');
       wrap.classList.remove('hidden');
-
       exportedLeads.forEach(lead => {
         const tr = document.createElement('tr');
-
         tr.innerHTML = `
           <td><strong>${escapeHtml(lead.name)}</strong><br>${escapeHtml(lead.address || '')}</td>
           <td>${escapeHtml(lead.phone || 'Não encontrado')}</td>
@@ -1896,10 +1825,8 @@ Comercial: ${settings.commercial || ''}
           <td>${lead.exportedAt ? formatDate(lead.exportedAt) : '-'}</td>
           <td><span class="badge">Exportado</span></td>
         `;
-
         tbody.appendChild(tr);
       });
-
       updateCounters();
     }
 
@@ -1926,59 +1853,27 @@ Comercial: ${settings.commercial || ''}
         toast('Nenhum lead salvo para exportar.');
         return;
       }
-
-      const headers = [
-        'Empresa',
-        'Telefone',
-        'Site',
-        'Endereço',
-        'Avaliação',
-        'Total de avaliações',
-        'Status',
-        'Google Maps'
-      ];
-
+      const headers = ['Empresa', 'Telefone', 'Site', 'Endereço', 'Avaliação', 'Total de avaliações', 'Status', 'Google Maps'];
       const rows = savedLeads.map(lead => [
-        lead.name || '',
-        lead.phone || '',
-        lead.website || '',
-        lead.address || '',
-        lead.rating || '',
-        lead.user_ratings_total || '',
-        lead.status || '',
-        lead.url || ''
+        lead.name || '', lead.phone || '', lead.website || '', lead.address || '', lead.rating || '',
+        lead.user_ratings_total || '', lead.status || '', lead.url || ''
       ]);
-
-      const csv = [
-        headers,
-        ...rows
-      ].map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
-
-      const blob = new Blob(['\ufeff' + csv], {
-        type: 'text/csv;charset=utf-8;'
-      });
-
+      const csv = [headers, ...rows].map(row => row.map(value => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
+      const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-
       a.href = url;
       a.download = `leads-salvos-${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
-
       URL.revokeObjectURL(url);
-
       toast('CSV exportado.');
     }
 
     function makeWhatsAppUrl(phone, companyName) {
       const digits = String(phone).replace(/\D/g, '');
-
       if (!digits) return '';
-
       const finalPhone = digits.startsWith('55') ? digits : `55${digits}`;
-
       const message = `Olá, tudo bem? Falo com o responsável pela empresa ${companyName}?`;
-
       return `https://wa.me/${finalPhone}?text=${encodeURIComponent(message)}`;
     }
 
