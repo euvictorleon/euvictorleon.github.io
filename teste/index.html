@@ -36,9 +36,7 @@
       color: var(--dark);
     }
 
-    button,
-    input,
-    select {
+    button, input, select {
       font-family: inherit;
     }
 
@@ -268,15 +266,10 @@
       gap: 16px;
     }
 
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-    }
-
     .grid-search {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr auto;
+      /* Organizado em 3 colunas, logo os 6 elementos formam 2 linhas perfeitas */
+      grid-template-columns: repeat(3, 1fr);
       gap: 16px;
       align-items: end;
     }
@@ -611,8 +604,7 @@
       overflow: hidden;
     }
 
-    th,
-    td {
+    th, td {
       text-align: left;
       padding: 14px;
       border-bottom: 1px solid var(--border);
@@ -631,20 +623,13 @@
       .grid-search {
         grid-template-columns: 1fr 1fr;
       }
-      #searchBtn {
-        width: 100%;
-      }
-      .grid-search .field:last-child {
-        grid-column: 1 / -1;
-      }
     }
 
     @media (max-width: 1200px) {
       .leads-grid {
         grid-template-columns: repeat(2, 1fr);
       }
-      .stats,
-      .grid-3 {
+      .stats, .grid-3 {
         grid-template-columns: repeat(2, 1fr);
       }
     }
@@ -663,20 +648,12 @@
         width: 100%;
         padding: 22px 16px;
       }
-      .topbar,
-      .section-head {
+      .topbar, .section-head {
         align-items: flex-start;
         flex-direction: column;
       }
-      .stats,
-      .grid-3,
-      .grid-2,
-      .grid-search,
-      .leads-grid {
+      .stats, .grid-3, .grid-search, .leads-grid {
         grid-template-columns: 1fr;
-      }
-      .grid-search .field:last-child {
-        grid-column: auto;
       }
     }
   </style>
@@ -756,31 +733,63 @@
             <div class="section-icon">🔎</div>
             <div>
               <h3>Buscar leads</h3>
-              <p>Busque por cidade, bairro e até a rua exata para não deixar ninguém escapar.</p>
+              <p>Busque de forma abrangente ou exata (auto-carrega até 60 resultados de uma vez).</p>
             </div>
           </div>
 
           <div class="grid-search">
+            <!-- NOME -->
             <div class="field">
-              <label for="nicheInput">Nicho</label>
-              <input id="nicheInput" type="text" placeholder="Ex: restaurantes" />
+              <label for="nameInput">Nome <span style="font-weight: normal; color: var(--muted); text-transform: none;">(Opcional)</span></label>
+              <input id="nameInput" type="text" placeholder="Ex: Tempero Mineiro" />
             </div>
 
+            <!-- NICHO COM DATALIST -->
+            <div class="field">
+              <label for="nicheInput">Nicho</label>
+              <input id="nicheInput" list="nicheList" type="text" placeholder="Ex: Restaurantes" autocomplete="off" />
+              <datalist id="nicheList">
+                <option value="Advogados"></option>
+                <option value="Agências de Marketing"></option>
+                <option value="Bares e Pubs"></option>
+                <option value="Clínicas Médicas"></option>
+                <option value="Clínicas Odontológicas"></option>
+                <option value="Contabilidades"></option>
+                <option value="Corretoras de Seguros"></option>
+                <option value="Estúdios de Tatuagem"></option>
+                <option value="Farmácias"></option>
+                <option value="Imobiliárias"></option>
+                <option value="Lojas de Roupas"></option>
+                <option value="Lojas de Veículos"></option>
+                <option value="Oficinas Mecânicas"></option>
+                <option value="Padarias"></option>
+                <option value="Pet Shops"></option>
+                <option value="Restaurantes"></option>
+                <option value="Salões e Barbearias"></option>
+                <option value="Supermercados"></option>
+                <option value="Tecnologia e TI"></option>
+              </datalist>
+            </div>
+
+            <!-- CIDADE -->
             <div class="field">
               <label for="cityInput">Cidade</label>
               <input id="cityInput" type="text" placeholder="Ex: Maringá" />
             </div>
 
+            <!-- BAIRRO -->
             <div class="field">
               <label for="districtInput">Bairro <span style="font-weight: normal; color: var(--muted); text-transform: none;">(Opcional)</span></label>
               <input id="districtInput" type="text" placeholder="Ex: Zona 7" />
             </div>
 
+            <!-- RUA -->
             <div class="field">
               <label for="streetInput">Rua/Avenida <span style="font-weight: normal; color: var(--muted); text-transform: none;">(Opcional)</span></label>
               <input id="streetInput" type="text" placeholder="Ex: Av. Colombo" />
             </div>
 
+            <!-- BOTÃO -->
             <div class="field">
               <button class="btn btn-green" onclick="searchLeads()" id="searchBtn" style="height: 48px; width: 100%;">
                 Extrair Leads
@@ -798,7 +807,7 @@
             </button>
 
             <button class="btn btn-soft-yellow" onclick="clearResults()">
-              Limpar resultados
+              Limpar resultados e pesquisa
             </button>
           </div>
         </div>
@@ -809,7 +818,7 @@
               <div class="section-icon">📍</div>
               <div>
                 <h3>Resultados</h3>
-                <p>Leads encontrados com foto, contato, endereço, site e ações.</p>
+                <p>Lista carregada (sem paginação, rola tudo de uma vez).</p>
               </div>
             </div>
           </div>
@@ -840,9 +849,6 @@
           </div>
 
           <div id="leadsGrid" class="leads-grid"></div>
-          
-          <div id="paginationControls" class="actions" style="justify-content: center; margin-top: 24px;"></div>
-
         </div>
       </section>
 
@@ -961,22 +967,15 @@
   <script>
     let map = null;
     let placesService = null;
-    let placesPagination = null;
-    let isLoadingMore = false;
-
-    let nextTokenReady = false;
-    let nextTokenTimer = null;
 
     let detailsQueue = [];
     let isProcessingQueue = false;
-
-    let currentPage = 1;
-    const leadsPerPage = 20;
 
     let leads = [];
     let savedLeads = [];
     let exportedLeads = [];
     let selectedLeadIds = new Set();
+    let isSearching = false;
 
     const STORAGE_KEYS = {
       settings: 'vlhunt_settings_v2',
@@ -991,23 +990,24 @@
       renderSavedLeads();
       renderExportedLeads();
 
+      const savedName = localStorage.getItem('vlhunt_last_name') || '';
       const savedNiche = localStorage.getItem('vlhunt_last_niche') || '';
       const savedCity = localStorage.getItem('vlhunt_last_city') || '';
       const savedDistrict = localStorage.getItem('vlhunt_last_district') || '';
       const savedStreet = localStorage.getItem('vlhunt_last_street') || '';
 
+      document.getElementById('nameInput').value = savedName;
       document.getElementById('nicheInput').value = savedNiche;
       document.getElementById('cityInput').value = savedCity;
       document.getElementById('districtInput').value = savedDistrict;
       document.getElementById('streetInput').value = savedStreet;
 
       const settings = getSettings();
-
       if (settings.googleApiKey) {
         loadGoogleMapsScript(settings.googleApiKey);
       }
 
-      const searchFields = document.querySelectorAll('#nicheInput, #cityInput, #districtInput, #streetInput');
+      const searchFields = document.querySelectorAll('#nameInput, #nicheInput, #cityInput, #districtInput, #streetInput');
       searchFields.forEach(field => {
         field.addEventListener('keypress', (event) => {
           if (event.key === 'Enter') {
@@ -1128,7 +1128,37 @@
       document.getElementById('pendingCount').textContent = leads.length; 
     }
 
+    // REMOVE ACENTOS E FACILITA COMPARAÇÃO PARA O FILTRO ANTIBAGUNÇA DO GOOGLE
+    function normalizeString(str) {
+      return (str || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    }
+
+    // TRAVA DE SEGURANÇA: Se digitar a rua/bairro, o endereço OBRIGATORIAMENTE tem que conter.
+    function isStrictMatch(place, district, street) {
+      if (!district && !street) return true; // Se não pesquisou rua nem bairro, deixa passar
+      
+      const addr = normalizeString(place.formatted_address || place.vicinity || place.name || '');
+      let matchDistrict = true;
+      let matchStreet = true;
+
+      if (district) {
+         const dStr = normalizeString(district);
+         matchDistrict = addr.includes(dStr);
+      }
+
+      if (street) {
+         // O usuário digita "Av. Brasil", retiramos prefixos pra evitar erro bobo.
+         let sStr = normalizeString(street).replace(/^(rua|av|avenida|trav|travessa|alameda|rodovia|rod)\.?\s+/g, '');
+         matchStreet = addr.includes(sStr);
+      }
+
+      return matchDistrict && matchStreet;
+    }
+
     function searchLeads() {
+      if (isSearching) return;
+
+      const name = document.getElementById('nameInput').value.trim();
       const niche = document.getElementById('nicheInput').value.trim();
       const city = document.getElementById('cityInput').value.trim();
       const district = document.getElementById('districtInput').value.trim();
@@ -1147,210 +1177,90 @@
       }
 
       if (!placesService) {
-        toast('Google Maps estava carregando. Aguarde alguns segundos e tente novamente.');
+        toast('Google Maps carregando... Aguarde.');
         return;
       }
 
+      localStorage.setItem('vlhunt_last_name', name);
       localStorage.setItem('vlhunt_last_niche', niche);
       localStorage.setItem('vlhunt_last_city', city);
       localStorage.setItem('vlhunt_last_district', district);
       localStorage.setItem('vlhunt_last_street', street);
 
-      let queryParts = [niche];
-      if (street) queryParts.push(`na ${street}`);
+      let queryParts = [];
+      if (name) queryParts.push(name);
+      queryParts.push(niche);
+      if (street) queryParts.push(`na rua ${street}`);
       if (district) queryParts.push(`bairro ${district}`);
       queryParts.push(`em ${city}`);
       
       const query = queryParts.join(' ');
 
-      detailsQueue = [];
-      isProcessingQueue = false;
-      nextTokenReady = false;
+      // Reset total
       leads = [];
+      detailsQueue = [];
       selectedLeadIds.clear();
-      placesPagination = null;
-      isLoadingMore = false;
-      currentPage = 1;
-      window.vlHuntRetries = 0; 
+      isProcessingQueue = false;
+      isSearching = true;
 
       document.getElementById('selectAllCheckbox').checked = false;
-      document.getElementById('searchBtn').disabled = true;
-      document.getElementById('searchBtn').textContent = 'Buscando...';
+      const btn = document.getElementById('searchBtn');
+      btn.disabled = true;
+      btn.textContent = 'Buscando (0)...';
 
-      renderLeads();
+      renderLeads(); // Limpa grid
 
-      placesService.textSearch({ query: query, type: 'establishment' }, (results, status, pagination) => {
-        document.getElementById('searchBtn').disabled = false;
-        document.getElementById('searchBtn').textContent = 'Extrair Leads';
-        handlePlacesResults(results, status, pagination, false);
-      });
+      placesService.textSearch({ query: query, type: 'establishment' }, handlePlacesResults);
     }
 
-    function handlePlacesResults(results, status, pagination, append) {
-      
-      // SOLUÇÃO DO ENGARRAFAMENTO: Retoma o trânsito da fila de telefones assim que a página chegar!
-      isProcessingQueue = false;
-      processQueue(); 
-
+    function handlePlacesResults(results, status, pagination) {
       if (status === google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT) {
-         toast('Google pediu um respiro. Tentando novamente sozinho em 2s...');
          setTimeout(() => {
-            if (placesPagination && placesPagination.hasNextPage) {
-               placesPagination.nextPage();
-            } else if (!isLoadingMore) {
-               document.getElementById('searchBtn').click(); 
-            }
+            if (pagination && pagination.hasNextPage) pagination.nextPage();
          }, 2000);
          return; 
       }
 
-      if (status === google.maps.places.PlacesServiceStatus.INVALID_REQUEST && isLoadingMore) {
-         window.vlHuntRetries = (window.vlHuntRetries || 0) + 1;
-         
-         if (window.vlHuntRetries > 3) {
-             toast('Próxima página ainda não pronta no Google. Aguarde uns segundos e tente clicar em "Próxima" de novo.');
-             isLoadingMore = false;
-             window.vlHuntRetries = 0;
-             renderPaginationControls(leads.length);
-             return;
-         }
+      if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+        const district = document.getElementById('districtInput').value.trim();
+        const street = document.getElementById('streetInput').value.trim();
 
-         toast(`Aguardando liberação da página do Google... (Tentativa ${window.vlHuntRetries}/3)`);
-         setTimeout(() => {
-            if (placesPagination && placesPagination.hasNextPage) {
-               // Pausa a fila antes de pedir a página de novo (Regra de trânsito)
-               isProcessingQueue = true;
-               placesPagination.nextPage();
-            }
-         }, 2000);
-         return; 
-      }
-
-      window.vlHuntRetries = 0;
-
-      if (status !== google.maps.places.PlacesServiceStatus.OK || !results || !results.length) {
-        if (!append && !isLoadingMore) {
-          leads = [];
-          renderLeads();
-        }
-
-        if (status === google.maps.places.PlacesServiceStatus.ZERO_RESULTS) {
-           if (leads.length > 0) {
-              toast('Não há mais páginas de resultados para esta região.');
-           } else {
-              toast('Nenhuma empresa encontrada com estes termos.');
-           }
-        } else {
-            toast('Erro do Google ou limite atingido: ' + status);
-        }
-
-        isLoadingMore = false;
-        renderPaginationControls(leads.length);
-        updateCounters();
-        return;
-      }
-
-      results.forEach(place => {
-        const normalized = normalizePlace(place);
-        if (!leads.some(lead => lead.place_id === normalized.place_id) && 
-            !savedLeads.some(saved => saved.place_id === normalized.place_id)) {
-          leads.push(normalized);
-          fetchPlaceDetailsQueue(normalized.place_id);
-        }
-      });
-
-      placesPagination = pagination && pagination.hasNextPage ? pagination : null;
-      clearTimeout(nextTokenTimer);
-      
-      if (placesPagination) {
-        nextTokenReady = false;
-        nextTokenTimer = setTimeout(() => {
-          nextTokenReady = true;
-          renderPaginationControls(leads.length);
-        }, 2500); 
-      } else {
-        nextTokenReady = true;
-      }
-
-      if (isLoadingMore) {
-        currentPage++;
-        isLoadingMore = false;
+        results.forEach(place => {
+          // FILTRO ATIVADO: Só entra se não for "misturado"
+          if (isStrictMatch(place, district, street)) {
+             const normalized = normalizePlace(place);
+             if (!leads.some(l => l.place_id === normalized.place_id) && !savedLeads.some(s => s.place_id === normalized.place_id)) {
+               leads.push(normalized);
+               fetchPlaceDetailsQueue(normalized.place_id);
+             }
+          }
+        });
       }
 
       renderLeads();
       updateCounters();
-    }
 
-    function changePage(direction) {
-      const totalPages = Math.ceil(leads.length / leadsPerPage);
-
-      if (direction === 1) {
-        if (currentPage >= totalPages && placesPagination && placesPagination.hasNextPage) {
-          loadMoreLeadsForPagination();
-        } else if (currentPage < totalPages) {
-          currentPage++;
-          renderLeads();
+      const btn = document.getElementById('searchBtn');
+      
+      // MÁGICA: Se houver mais páginas no Google, ele pede sozinho
+      if (pagination && pagination.hasNextPage) {
+        btn.textContent = `Buscando mais... (${leads.length})`;
+        
+        // Timeout de 2 segundos obrigatório da API do Google para a próxima página
+        setTimeout(() => {
+          pagination.nextPage();
+        }, 2000);
+      } else {
+        isSearching = false;
+        btn.disabled = false;
+        btn.textContent = 'Extrair Leads';
+        
+        if (leads.length === 0) {
+           toast('Fim. Nenhum lead EXATO com esses filtros. Tente flexibilizar.');
+        } else {
+           toast(`Busca automatizada concluída! ${leads.length} leads na tela.`);
         }
-      } else if (direction === -1) {
-        if (currentPage > 1) {
-          currentPage--;
-          renderLeads();
-        }
       }
-    }
-
-    function loadMoreLeadsForPagination() {
-      if (!placesPagination || !placesPagination.hasNextPage) return;
-      if (isLoadingMore || !nextTokenReady) return;
-
-      isLoadingMore = true;
-      renderPaginationControls(leads.length); 
-
-      // SOLUÇÃO DO ENGARRAFAMENTO: Pausar a fila de telefones para pedir a página
-      isProcessingQueue = true; 
-
-      setTimeout(() => {
-          try {
-            placesPagination.nextPage();
-          } catch (error) {
-            console.error(error);
-            isLoadingMore = false;
-            isProcessingQueue = false; // Retoma se der erro
-            processQueue();
-            renderPaginationControls(leads.length);
-          }
-      }, 500);
-    }
-
-    function renderPaginationControls(totalLeads) {
-      const container = document.getElementById('paginationControls');
-      if (!container) return;
-
-      if (totalLeads === 0 && (!placesPagination || !placesPagination.hasNextPage)) {
-        container.innerHTML = '';
-        return;
-      }
-
-      const totalPages = Math.ceil(totalLeads / leadsPerPage);
-      const hasMoreFromApi = placesPagination && placesPagination.hasNextPage;
-
-      const isNextDisabled = (!hasMoreFromApi && currentPage >= totalPages) || isLoadingMore || (hasMoreFromApi && currentPage >= totalPages && !nextTokenReady);
-      const isPrevDisabled = currentPage === 1 || isLoadingMore;
-
-      let nextBtnText = "Próxima";
-      if (hasMoreFromApi && currentPage >= totalPages && !nextTokenReady) {
-          nextBtnText = "Gerando próxima... ⏳";
-      } else if (isLoadingMore) {
-          nextBtnText = "Buscando...";
-      }
-
-      container.innerHTML = `
-        <button class="btn btn-soft-gray" onclick="changePage(-1)" ${isPrevDisabled ? 'disabled' : ''}>Anterior</button>
-        <span style="display: flex; align-items: center; font-weight: 800; font-size: 14px; padding: 0 15px; color: var(--muted);">
-          Página ${currentPage} ${totalPages > 1 ? `de ${Math.max(totalPages, currentPage)}` : ''}
-        </span>
-        <button class="btn btn-soft-gray" onclick="changePage(1)" ${isNextDisabled ? 'disabled' : ''}>${nextBtnText}</button>
-      `;
     }
 
     function normalizePlace(place) {
@@ -1382,7 +1292,6 @@
     }
 
     function processQueue() {
-      // Se tiver buscando a página (trânsito pausado), ele não faz nada até liberar!
       if (isProcessingQueue || detailsQueue.length === 0) return;
       isProcessingQueue = true;
 
@@ -1424,12 +1333,7 @@
                   ? place.photos[0].getUrl({ maxWidth: 900, maxHeight: 360 })
                   : leads[index].photo
               };
-
-              const startIndex = (currentPage - 1) * leadsPerPage;
-              const endIndex = startIndex + leadsPerPage;
-              if (index >= startIndex && index < endIndex) {
-                renderLeads();
-              }
+              renderLeads();
             }
           }
 
@@ -1448,29 +1352,21 @@
       grid.innerHTML = '';
 
       if (!leads.length) {
-        if (placesPagination && placesPagination.hasNextPage) {
-           empty.innerHTML = 'Todos os leads desta página foram salvos ou limpos.<br><br><button class="btn btn-dark" onclick="loadMoreLeadsForPagination()">Buscar próximos leads</button>';
+        if (!isSearching) {
+           empty.innerHTML = 'Nenhum lead pesquisado ainda.';
         } else {
-           empty.innerHTML = 'Nenhum lead pesquisado ainda (ou todos já foram salvos).';
+           empty.innerHTML = 'Aguarde, processando resultados no Google...';
         }
         empty.classList.remove('hidden');
-        renderPaginationControls(0);
-        updateCounters();
         return;
       }
 
       empty.classList.add('hidden');
 
-      const startIndex = (currentPage - 1) * leadsPerPage;
-      const endIndex = startIndex + leadsPerPage;
-      const leadsToDisplay = leads.slice(startIndex, endIndex);
-
-      leadsToDisplay.forEach(lead => {
+      // Agora renderiza todos de uma vez (até 60) sem precisar de botões de página!
+      leads.forEach(lead => {
         grid.appendChild(createLeadCard(lead, 'current'));
       });
-
-      renderPaginationControls(leads.length);
-      updateCounters();
     }
 
     function createLeadCard(lead, source) {
@@ -1571,10 +1467,7 @@
 
     function toggleSelectAll(checked) {
       if (checked) {
-        const startIndex = (currentPage - 1) * leadsPerPage;
-        const endIndex = startIndex + leadsPerPage;
-        const leadsToDisplay = leads.slice(startIndex, endIndex);
-        leadsToDisplay.forEach(lead => selectedLeadIds.add(lead.place_id));
+        leads.forEach(lead => selectedLeadIds.add(lead.place_id));
       } else {
         selectedLeadIds.clear();
       }
@@ -1852,22 +1745,25 @@ Comercial: ${settings.commercial || ''}
     }
 
     function clearResults() {
+      document.getElementById('nameInput').value = '';
+      document.getElementById('nicheInput').value = '';
+      document.getElementById('cityInput').value = '';
+      document.getElementById('districtInput').value = '';
+      document.getElementById('streetInput').value = '';
+        
       detailsQueue = [];
       isProcessingQueue = false;
-      nextTokenReady = false;
+      isSearching = false;
       leads = [];
       selectedLeadIds.clear();
-      placesPagination = null;
-      isLoadingMore = false;
-      currentPage = 1;
-      window.vlHuntRetries = 0;
 
       document.getElementById('selectAllCheckbox').checked = false;
-      document.getElementById('paginationControls').innerHTML = '';
+      document.getElementById('searchBtn').disabled = false;
+      document.getElementById('searchBtn').textContent = 'Extrair Leads';
 
       renderLeads();
       updateCounters();
-      toast('Resultados limpos.');
+      toast('Pesquisa e resultados limpos com sucesso.');
     }
 
     function exportSavedToCSV() {
