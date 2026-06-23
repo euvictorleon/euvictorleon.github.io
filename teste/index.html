@@ -136,7 +136,9 @@
       <div class="login-brand">V</div>
       <h2>VL Hunt</h2>
       <p>Acesso restrito. Faça login para continuar.</p>
-      <form onsubmit="handleSupabaseLogin(event)">
+      
+      <!-- Corrigido para NÃO recarregar a página -->
+      <form id="loginForm">
         <input type="email" id="loginEmail" placeholder="Seu e-mail cadastrado" required autocomplete="email" />
         <input type="password" id="loginPassword" placeholder="Sua senha" required autocomplete="current-password" />
         <button type="submit" id="loginBtn">Entrar no Sistema</button>
@@ -409,13 +411,11 @@
             <div class="grid-2">
               <div class="field">
                 <label for="googleApiKeyInput">API Key Google Maps</label>
-                <!-- autocomplete off evita sugestões do navegador -->
                 <input id="googleApiKeyInput" type="password" autocomplete="new-password" placeholder="Cole sua API Key do Google Maps" />
               </div>
 
               <div class="field">
                 <label for="pipedriveTokenInput">Token Pipedrive</label>
-                <!-- autocomplete off evita preenchimento de email pelo navegador -->
                 <input id="pipedriveTokenInput" type="password" autocomplete="new-password" placeholder="Cole seu token do Pipedrive" />
               </div>
             </div>
@@ -478,11 +478,11 @@
       let pendingLeadsToSave = []; 
       
       let currentUserEmail = ''; 
-      let currentUserFullName = ''; // Para enviar pro Pipedrive
+      let currentUserFullName = ''; 
       let isUserAdmin = false; 
 
       const STORAGE_KEYS = {
-        settings: 'vlhunt_settings_v3', // Alterado para limpar cache antigo
+        settings: 'vlhunt_settings_v3',
         saved: 'vlhunt_saved_leads_v2',
         exported: 'vlhunt_exported_leads_v2'
       };
@@ -1001,11 +1001,13 @@
     <script>
       const supabaseUrl = 'https://sowbnurzaukkxybqbtxa.supabase.co';
       const supabaseKey = 'sb_publishable_36PhUy-41qXKbCXG7OQkrA_fOiKgUOK';
-      const supabase = supabase.createClient(supabaseUrl, supabaseKey);
       
-      const ADMIN_EMAILS = ['leonvquadros@gmail.com']; // APENAS ESSE E-MAIL VÊ CONFIGURAÇÕES
+      // SOLUÇÃO DO BUG: Trocamos o nome da variável "supabase" para "supa" 
+      // Isso impede que o navegador confunda com a biblioteca principal e quebre o código
+      const supa = window.supabase.createClient(supabaseUrl, supabaseKey);
+      
+      const ADMIN_EMAILS = ['leonvquadros@gmail.com']; 
 
-      // Extrai Nome Corretamente
       function formatUserNameFromEmail(email) {
         let namePart = email.split('@')[0];
         namePart = namePart.replace(/[._-]/g, ' '); 
@@ -1020,17 +1022,14 @@
         currentUserEmail = email;
         isUserAdmin = ADMIN_EMAILS.includes(email.toLowerCase());
 
-        // Esconde Login, Mostra App
         document.getElementById('loginOverlay').style.display = 'none';
         document.getElementById('mainApp').style.display = 'block';
 
-        // Atualiza Avatar e Nome
         const userInfo = formatUserNameFromEmail(email);
-        currentUserFullName = userInfo.fullName; // Salva pra mandar pro pipedrive
+        currentUserFullName = userInfo.fullName; 
         document.getElementById('topUserName').textContent = userInfo.fullName;
         document.getElementById('topUserInitials').textContent = userInfo.initials;
 
-        // Trava do Admin
         const navSettingsBtn = document.getElementById('navSettingsBtn');
         if (isUserAdmin) {
             navSettingsBtn.style.display = 'flex';
@@ -1038,37 +1037,46 @@
             navSettingsBtn.style.display = 'none';
         }
 
-        // FORÇA A TELA INICIAL (EVITA QUE O NÃO-ADMIN CAIA EM CONFIGURAÇÕES)
         showSection('extract');
       }
 
-      async function handleSupabaseLogin(e) {
-        e.preventDefault();
+      // NOVO: Adicionado um listener para impedir 100% que a página recarregue no Enter
+      document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault(); // <-- O que salva a gente do refresh chato!
+        
         const email = document.getElementById('loginEmail').value.trim();
         const password = document.getElementById('loginPassword').value.trim();
         const btn = document.getElementById('loginBtn');
         
-        btn.textContent = "Validando acesso..."; btn.disabled = true;
+        btn.textContent = "Validando acesso..."; 
+        btn.disabled = true;
 
-        const { data, error } = await supabase.auth.signInWithPassword({ email: email, password: password });
+        try {
+          const { data, error } = await supa.auth.signInWithPassword({ email: email, password: password });
 
-        if (error) {
-          alert('Erro no login: E-mail ou senha incorretos.');
-          btn.textContent = "Entrar no Sistema"; btn.disabled = false;
-        } else {
-          iniciarSistemaApp(data.user.email);
+          if (error) {
+            alert('Erro no login: E-mail ou senha incorretos.');
+            btn.textContent = "Entrar no Sistema"; 
+            btn.disabled = false;
+          } else {
+            iniciarSistemaApp(data.user.email);
+          }
+        } catch(err) {
+            alert('Erro de conexão com o servidor.');
+            btn.textContent = "Entrar no Sistema"; 
+            btn.disabled = false;
         }
-      }
+      });
 
       async function handleSupabaseLogout() {
         if(confirm('Tem certeza que deseja sair?')) {
-            await supabase.auth.signOut();
+            await supa.auth.signOut();
             window.location.reload(); 
         }
       }
 
       document.addEventListener('DOMContentLoaded', async () => {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supa.auth.getSession();
         if (session) {
            iniciarSistemaApp(session.user.email);
         }
