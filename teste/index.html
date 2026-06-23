@@ -740,9 +740,11 @@
         <label>E-mail</label>
         <input type="email" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key === 'Enter') handleLogin()" />
       </div>
-      <div class="field">
+      <div class="field" style="position: relative;">
         <label>Senha</label>
-        <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key === 'Enter') handleLogin()" />
+        <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key === 'Enter') handleLogin()" style="padding-right: 40px;" />
+        <!-- BOTÃO DE OLHAR A SENHA -->
+        <span id="togglePasswordBtn" onclick="togglePassword()" style="position: absolute; right: 15px; top: 35px; cursor: pointer; font-size: 18px; user-select: none;">👁️</span>
       </div>
       
       <button class="btn btn-green" style="width: 100%; margin-top: 8px;" onclick="handleLogin()" id="loginBtn">Entrar no Sistema</button>
@@ -1972,7 +1974,7 @@ Comercial: ${settings.commercial || ''}
   <!-- LÓGICA DO SUPABASE E LOGIN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    // Suas credenciais já integradas e corrigidas
+    // Suas credenciais
     const supabaseUrl = 'https://sowbnurzaukxxybqbtxa.supabase.co';
     const supabaseKey = 'sb_publishable_36PhUy-41qXKbCXG7OQkrA_fOiKgUOK';
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -1980,6 +1982,19 @@ Comercial: ${settings.commercial || ''}
     const loginScreen = document.getElementById('loginScreen');
     const appContent = document.getElementById('appContent');
     const loginError = document.getElementById('loginError');
+
+    // Função NOVA para olhar a senha 👁️
+    function togglePassword() {
+      const pwdInput = document.getElementById('loginPassword');
+      const toggleBtn = document.getElementById('togglePasswordBtn');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        toggleBtn.textContent = '🙈'; // Olho fechado
+      } else {
+        pwdInput.type = 'password';
+        toggleBtn.textContent = '👁️'; // Olho aberto
+      }
+    }
 
     // 1. Verifica se já está logado ao carregar a página
     supabase.auth.getSession().then(({ data: { session } }) => {
